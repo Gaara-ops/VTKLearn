@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>610</width>
+    <height>470</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton">
+          <property name="text">
+           <string>PushButton</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>610</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuDock">
+    <property name="title">
+     <string>Dock</string>
+    </property>
+    <addaction name="actionVoumeInfo"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear"/>
+   </widget>
+   <widget class="QMenu" name="menuCreate">
+    <property name="title">
+     <string>Create</string>
+    </property>
+    <widget class="QMenu" name="menuClipPoly">
+     <property name="title">
+      <string>ClipPoly</string>
+     </property>
+     <addaction name="ClipFrustum"/>
+    </widget>
+    <widget class="QMenu" name="menuThreeSlice">
+     <property name="title">
+      <string>ThreeSlice</string>
+     </property>
+     <addaction name="actionCreateThreeSlice"/>
+     <addaction name="actionDrawLine"/>
+     <addaction name="actionClearLine"/>
+    </widget>
+    <addaction name="actionVolume"/>
+    <addaction name="actionMIP"/>
+    <addaction name="separator"/>
+    <addaction name="actionSurface"/>
+    <addaction name="actionLargestRegion"/>
+    <addaction name="separator"/>
+    <addaction name="menuThreeSlice"/>
+    <addaction name="separator"/>
+    <addaction name="menuClipPoly"/>
+   </widget>
+   <widget class="QMenu" name="menuImages">
+    <property name="title">
+     <string>Images</string>
+    </property>
+    <widget class="QMenu" name="menuGetEdge">
+     <property name="title">
+      <string>GetEdge</string>
+     </property>
+     <addaction name="actionCannyEdge"/>
+    </widget>
+    <addaction name="menuGetEdge"/>
+    <addaction name="actionHistogram"/>
+   </widget>
+   <addaction name="menuDock"/>
+   <addaction name="menuCreate"/>
+   <addaction name="menuImages"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionDrawline">
+   <property name="text">
+    <string>drawline</string>
+   </property>
+  </action>
+  <action name="actionClearline">
+   <property name="text">
+    <string>clearline</string>
+   </property>
+  </action>
+  <action name="actionVoumeInfo">
+   <property name="text">
+    <string>VoumeInfo</string>
+   </property>
+  </action>
+  <action name="actionVolume">
+   <property name="text">
+    <string>Volume</string>
+   </property>
+  </action>
+  <action name="actionSurface">
+   <property name="text">
+    <string>Surface</string>
+   </property>
+  </action>
+  <action name="actionLargestRegion">
+   <property name="text">
+    <string>LargestRegion</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionMIP">
+   <property name="text">
+    <string>MIP</string>
+   </property>
+  </action>
+  <action name="ClipFrustum">
+   <property name="text">
+    <string>ClipFrustum</string>
+   </property>
+  </action>
+  <action name="actionCreateThreeSlice">
+   <property name="text">
+    <string>CreateThreeSlice</string>
+   </property>
+  </action>
+  <action name="actionDrawLine">
+   <property name="text">
+    <string>DrawLine</string>
+   </property>
+  </action>
+  <action name="actionClearLine">
+   <property name="text">
+    <string>ClearLine</string>
+   </property>
+  </action>
+  <action name="actionCannyEdge">
+   <property name="text">
+    <string>CannyEdge</string>
+   </property>
+  </action>
+  <action name="actionHistogram">
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QVTKWidget</class>
+   <extends>QWidget</extends>
+   <header>QVTKWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
