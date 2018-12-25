@@ -95,6 +95,7 @@
     </widget>
     <addaction name="menuGetEdge"/>
     <addaction name="actionHistogram"/>
+    <addaction name="separator"/>
     <addaction name="actionSliceShow"/>
    </widget>
    <addaction name="menuDock"/>

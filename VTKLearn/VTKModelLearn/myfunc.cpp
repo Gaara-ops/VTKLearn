@@ -1,5 +1,6 @@
 #include "myfunc.h"
 
+#include "MyDiocmInteractorStyleImage.h"
 MyFunc::MyFunc()
 {
 }
@@ -483,4 +484,66 @@ void MyFunc::CreateClipFrustum(vtkRenderer *renderer, const char *fileName)
 	renderer->AddActor(outActor);
 	renderer->ResetCamera();
 	renderer->ResetCameraClippingRange();
+}
+
+void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
+{
+	// Visualize
+	vtkSmartPointer<vtkImageViewer2> imageViewer =
+	   vtkSmartPointer<vtkImageViewer2>::New();
+	imageViewer->SetInputData(reader->GetOutput());
+	int dim[3];
+	double spacing[3];
+	reader->GetOutput()->GetDimensions(dim);
+	reader->GetOutput()->GetSpacing(spacing);
+	imageViewer->SetSize(dim[0],dim[1]);
+	// slice status message
+	vtkSmartPointer<vtkTextProperty> sliceTextProp =
+			vtkSmartPointer<vtkTextProperty>::New();
+	sliceTextProp->SetFontFamilyToCourier();
+	sliceTextProp->SetFontSize(20);
+	sliceTextProp->SetVerticalJustificationToBottom();
+	sliceTextProp->SetJustificationToLeft();
+
+	vtkSmartPointer<vtkTextMapper> sliceTextMapper =
+			vtkSmartPointer<vtkTextMapper>::New();
+	std::string msg = StatusMessage::Format(imageViewer->GetSliceMax(),
+											imageViewer->GetSliceMax());
+	sliceTextMapper->SetInput(msg.c_str());
+	sliceTextMapper->SetTextProperty(sliceTextProp);
+
+	vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+	sliceTextActor->SetMapper(sliceTextMapper);
+	sliceTextActor->SetPosition(15, 10);
+
+	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+	   vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+	vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
+	   vtkSmartPointer<myVtkInteractorStyleImage>::New();
+	myInteractorStyle->SetImageViewer(imageViewer);
+	myInteractorStyle->SetStatusMapper(sliceTextMapper);
+	myInteractorStyle->m_imageData = reader->GetOutput();
+
+	imageViewer->SetSlice(imageViewer->GetSliceMax());
+	imageViewer->SetupInteractor(renderWindowInteractor);
+	renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+	imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
+	imageViewer->Render();
+
+	imageViewer->GetRenderer()->ResetCamera();
+	vtkCamera* camera = imageViewer->GetRenderer()->GetActiveCamera();
+	double dataCenterPos[3]={(dim[0]-1)*spacing[0]/2,
+							 (dim[1]-1)*spacing[1]/2,
+							 (dim[2]-1)*spacing[2]/2};
+	double viewup[3] = {0,1,0};
+	camera->SetParallelProjection(1);
+	camera->SetPosition(dataCenterPos[0],dataCenterPos[1],dataCenterPos[2]+500);
+	camera->SetFocalPoint(dataCenterPos[0],dataCenterPos[1],dataCenterPos[2]);
+	camera->SetViewUp(viewup);
+	camera->SetParallelScale(dataCenterPos[1]);
+	camera->SetClippingRange(0,10000);
+	camera->Modified();
+	imageViewer->Render();
+	renderWindowInteractor->Start();
 }

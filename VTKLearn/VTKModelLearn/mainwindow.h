@@ -77,7 +77,7 @@ private:
     vtkImageData* m_imageData;
     //灯光1
     vtkLight* light1;
-	//dicom交互style,包含区域增长算法
+	//三维切片显示时,在切片上画线并绘制点集
 	MouseInteractorStyleTest* m_mouseInter;
 };
 

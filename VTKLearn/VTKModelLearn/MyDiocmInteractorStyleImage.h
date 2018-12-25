@@ -29,12 +29,14 @@ protected:
    int _MinSlice;
    int _MaxSlice;
    QString m_strpos;
+   bool m_growRegion;
 public:
    void SetImageViewer(vtkImageViewer2* imageViewer) {
 	  _ImageViewer = imageViewer;
 	  _MinSlice = imageViewer->GetSliceMin();
 	  _MaxSlice = imageViewer->GetSliceMax();
 	  _Slice = _MaxSlice;
+	  m_growRegion = false;
    }
 
    void SetStatusMapper(vtkTextMapper* statusMapper) {
@@ -49,6 +51,11 @@ protected:
 
 	   qDebug() << "pos:" << pos[0] << "," << pos[1]<<","<<_Slice;
 	   qDebug() << "pos3d:" << pos3d[0]<< pos3d[1]<< pos3d[2];
+
+	   if(!m_growRegion){
+			vtkInteractorStyleImage::OnLeftButtonDown();
+			return;
+	   }
 	   /*测试区域增长*/
 	   vtkSmartPointer<vtkPoints> allPolyPoints =
 		 vtkSmartPointer<vtkPoints>::New();
@@ -65,7 +72,7 @@ protected:
 	   _ImageViewer->GetRenderer()->AddActor2D(allPointActor);
 	   _ImageViewer->Modified();
 	   _ImageViewer->Render();
-
+	   m_growRegion = false;
 	   /*测试添加中心点
 	   m_strpos += QString::number(pos3d[0])+","+QString::number(pos3d[1])+
 			   ","+QString::number(pos3d[2]) + "|";*/
@@ -103,6 +110,10 @@ protected:
 	  else if(key.compare("Down") == 0) {
 		 MoveSliceBackward();
 	  }
+	  else if(key.compare("p") == 0){
+		 m_growRegion = true;
+	  }
+	  std::cout << "key:" << key << std::endl;
 	  vtkInteractorStyleImage::OnKeyDown();
    }
    virtual void OnMouseWheelForward() {
@@ -127,6 +138,7 @@ protected:
 	   //标记初始生长点
 	   short *ptr0 = static_cast<short*>(m_imageData->GetScalarPointer(x,y,_Slice));
 	   nScrValue = (int)(*ptr0);
+	   *ptr0 = -2048;
 	   qDebug() << "nScrValue:"<<nScrValue;
 	   double spacing[3];
 	   m_imageData->GetSpacing(spacing);

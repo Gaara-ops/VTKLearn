@@ -40,6 +40,8 @@ public:
 	static vtkSmartPointer<vtkPolyData> ReadPolyData(const char *fileName);
 	//使用Frustum切割
 	static void CreateClipFrustum(vtkRenderer* renderer,const char *fileName);
+	//显示一系列dicom图像
+	static void ShowSeriesDicom(vtkDICOMImageReader* reader);
 };
 
 #endif // MYFUNC_H
