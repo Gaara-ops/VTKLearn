@@ -23,6 +23,15 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
+	///所有测试接口
+	//测试延中心线移动
+	QVector<QVector3D> m_posVec;
+	void testReadPoint();
+	void testBtnResponse1();
+	//测试三个切片和部分体,移动部分体
+	void testCreateContext();
+	void testBtnResponse2();
+	///end
     //绘制之前删除render中的actor或prop
     void DeleteAllThing();
 private slots:
@@ -52,6 +61,8 @@ private slots:
 
 	void on_actionHistogram_triggered();
 
+	void on_actionSliceShow_triggered();
+
 private:
     void InitInfo();
     void InitCamera();
@@ -66,7 +77,8 @@ private:
     vtkImageData* m_imageData;
     //灯光1
     vtkLight* light1;
-    MouseInteractorStyleTest* m_mouseInter;
+	//dicom交互style,包含区域增长算法
+	MouseInteractorStyleTest* m_mouseInter;
 };
 
 #endif // MAINWINDOW_H

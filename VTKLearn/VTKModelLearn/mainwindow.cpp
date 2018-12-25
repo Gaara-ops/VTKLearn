@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "GlobeInclude.h"
+#include "../Globe/GlobeInclude.h"
 
 #include "interactortest.h"
 #include "GlobeFunc.h"
 #include "myfunc.h"
+#include "MyDiocmInteractorStyleImage.h"
+vtkStandardNewMacro(myVtkInteractorStyleImage);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -16,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //读取文件
 	char *dirname = "E:/workspace/DICOM/133ceng";
-//    char *dirname = "G:/TestClient/VesselAnalysis_client/He Genqiang_";
     dicomReader = vtkDICOMImageReader::New();
     vtkDataArray* scalarsArr = NULL;
     double scalarRange[2];
@@ -30,6 +31,13 @@ MainWindow::MainWindow(QWidget *parent) :
     InitInfo();
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
     ui->qvtkWidget->GetRenderWindow()->Render();
+
+	///测试用
+	/*测试延中心线移动
+	testReadPoint();*/
+	/*测试三个切片和部分体,移动部分体
+	testCreateContext();*/
+	///end
 }
 
 MainWindow::~MainWindow()
@@ -39,6 +47,107 @@ MainWindow::~MainWindow()
     dicomReader->Delete();
     light1->Delete();
 	renderer->Delete();
+}
+
+void MainWindow::testReadPoint()
+{
+	QFile file("./centerline.txt");
+	if(!file.open(QIODevice::ReadOnly))
+	{
+		 return;
+	}
+	QTextStream in(&file);
+	QString alldata = in.readAll();
+	QStringList alldatalist = alldata.split("|");
+	for(int i=0;i<alldatalist.size();i++){
+		QStringList strlist = alldatalist.at(i).split(",");
+		if(strlist.size() == 3){
+			double tmpx = strlist.at(0).trimmed().toDouble();
+			double tmpy = strlist.at(1).trimmed().toDouble();
+			double tmpz = strlist.at(2).trimmed().toDouble();
+			m_posVec.append(QVector3D(tmpx,tmpy,tmpz));
+		}
+	}
+	file.close();
+	qDebug() << m_posVec.size();
+}
+int pointIndex= 10;
+void MainWindow::testBtnResponse1()
+{
+	vtkVolume* test =  (vtkVolume*)(renderer->GetVolumes()->GetLastProp());
+	/*测试视角延中心线移动*/
+	QVector3D beginPos = m_posVec.at(pointIndex);
+	QVector3D endPos = m_posVec.at(pointIndex+1);
+	double pos1[3] = {beginPos.x(),beginPos.y(),beginPos.z()};
+	double pos2[3] = {endPos.x(),endPos.y(),endPos.z()};
+	double tmpDir[3] = {pos1[0]-pos2[0],pos1[1]-pos2[1],pos1[2]-pos2[2]};
+	vtkMath::Normalize(tmpDir);
+	//方向确定
+	vtkSmartPointer<vtkPlane> planeDir =
+		vtkSmartPointer<vtkPlane>::New();
+	planeDir->SetOrigin(0.0, 0.0, 0.0);
+	planeDir->SetNormal(tmpDir);
+	double projected[3];
+	double pointP[3] = {1,0,0};
+	planeDir->ProjectPoint(pointP, projected);
+	vtkMath::Normalize(projected);
+	//用面进行切割
+	vtkSmartPointer<vtkPlane> plane =
+	  vtkSmartPointer<vtkPlane>::New();
+	plane->SetOrigin(pos1);
+	plane->SetNormal(-tmpDir[0],-tmpDir[1],-tmpDir[2]);
+	vtkSmartPointer<vtkPlaneCollection> planes =
+	  vtkSmartPointer<vtkPlaneCollection>::New();
+	planes->AddItem(plane);
+	vtkGPUVolumeRayCastMapper* mapper =(vtkGPUVolumeRayCastMapper*)test->GetMapper();
+	mapper->SetClippingPlanes(planes);
+	mapper->Modified();
+	vtkCamera* camera = this->renderer->GetActiveCamera();
+	qDebug() << camera->GetParallelProjection();
+	camera->SetPosition(pos1[0]+tmpDir[0]*1000,pos1[1]+tmpDir[1]*1000,
+			pos1[2]+tmpDir[2]*1000);
+	camera->SetFocalPoint(pos1);
+	camera->SetViewUp(projected);
+	camera->SetClippingRange(0,100000);
+	camera->Modified();
+	test->Modified();
+	ui->qvtkWidget->GetRenderWindow()->Render();
+	pointIndex++;
+	if(m_posVec.size()-1 <= pointIndex){
+		pointIndex = 5;
+	}
+}
+
+void MainWindow::testCreateContext()
+{
+	/*提取体感兴趣的区域*/
+	vtkSmartPointer<vtkExtractVOI> extractVOI =
+		vtkSmartPointer<vtkExtractVOI>::New();
+	extractVOI->SetInputConnection(dicomReader->GetOutputPort());
+	extractVOI->SetVOI(0,m_dim[0]/2,0,m_dim[1]/2,0,m_dim[2]/2);
+	extractVOI->Update();
+	CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);
+
+	CreateThreeSlice(m_dim,renderer,dicomReader);
+	renderer->ResetCamera();
+	ui->qvtkWidget->GetRenderWindow()->Render();
+}
+void MainWindow::testBtnResponse2()
+{
+	vtkVolume* test =  (vtkVolume*)(renderer->GetVolumes()->GetLastProp());
+	/*测试移动部分切割体*/
+	vtkPiecewiseFunction* opacity=test->GetProperty()->GetScalarOpacity();
+	opacity->ReleaseData();
+	opacity->AddPoint(-2048, 0, .49, .61 );
+	opacity->AddPoint(641, .72, .5, 0.0 );
+	opacity->AddPoint(3071, .71, 0.5, 0.0);
+	opacity->Modified();
+	double dataCenterPos[3]={(m_dim[0]-1)*m_spacing[0]/4,
+							 (m_dim[1]-1)*m_spacing[1]/4,
+							 (m_dim[2]-1)*m_spacing[2]/4};
+	test->SetPosition(dataCenterPos);
+	test->Modified();
+	ui->qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::DeleteAllThing()
@@ -104,12 +213,20 @@ void MainWindow::on_actionVoumeInfo_triggered()
 		m_volumeInfo->renderer = renderer;
 		m_volumeInfo->oriImageData = dicomReader->GetOutput();
 	}
+	m_volumeInfo->initPlaneInfo();
 	m_volumeInfo->setVisible(!m_volumeInfo->isVisible());
 }
 
 void MainWindow::on_actionVolume_triggered()
 {
 	DeleteAllThing();
+	/*提取体感兴趣的区域
+	vtkSmartPointer<vtkExtractVOI> extractVOI =
+		vtkSmartPointer<vtkExtractVOI>::New();
+	extractVOI->SetInputConnection(dicomReader->GetOutputPort());
+	extractVOI->SetVOI(0,m_dim[0]/2,0,m_dim[1]/2,0,m_dim[2]/2);
+	extractVOI->Update();
+	CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);*/
 	CreateVolume(m_imageData,0,1,0,renderer);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
@@ -149,17 +266,12 @@ void MainWindow::on_actionMIP_triggered()
 
 void MainWindow::on_pushButton_clicked()
 {
-	vtkVolume* test =  (vtkVolume*)(renderer->GetVolumes()->GetLastProp());
-
-	vtkPiecewiseFunction* opacity=test->GetProperty()->GetScalarOpacity();
-	opacity->ReleaseData();
-	opacity->AddPoint(200, 0, .49, .61 );
-	opacity->AddPoint(641, .72, .5, 0.0 );
-	opacity->AddPoint(3071, .71, 0.5, 0.0);
-	opacity->Modified();
-	test->Modified();
-
-	ui->qvtkWidget->GetRenderWindow()->Render();
+	///测试用
+	/*测试延中心线移动
+	testBtnResponse1();*/
+	/*测试三个切片和部分体,移动部分体*/
+	testBtnResponse2();
+	///end
 }
 
 void MainWindow::on_ClipFrustum_triggered()
@@ -231,4 +343,64 @@ void MainWindow::on_actionHistogram_triggered()
 	readtest->GetDataOrigin(ori);
 	readtest->GetDataExtent(extent);
 	readtest->Delete();*/
+}
+
+void MainWindow::on_actionSliceShow_triggered()
+{
+	// Visualize
+	vtkSmartPointer<vtkImageViewer2> imageViewer =
+	   vtkSmartPointer<vtkImageViewer2>::New();
+	imageViewer->SetInputData(dicomReader->GetOutput());
+	imageViewer->SetSize(512,512);
+	// slice status message
+	vtkSmartPointer<vtkTextProperty> sliceTextProp =
+			vtkSmartPointer<vtkTextProperty>::New();
+	sliceTextProp->SetFontFamilyToCourier();
+	sliceTextProp->SetFontSize(20);
+	sliceTextProp->SetVerticalJustificationToBottom();
+	sliceTextProp->SetJustificationToLeft();
+
+	vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+	std::string msg = StatusMessage::Format(imageViewer->GetSliceMax(),
+											imageViewer->GetSliceMax());
+	sliceTextMapper->SetInput(msg.c_str());
+	sliceTextMapper->SetTextProperty(sliceTextProp);
+
+	vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+	sliceTextActor->SetMapper(sliceTextMapper);
+	sliceTextActor->SetPosition(15, 10);
+
+	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+	   vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+	vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
+	   vtkSmartPointer<myVtkInteractorStyleImage>::New();
+	myInteractorStyle->SetImageViewer(imageViewer);
+	myInteractorStyle->SetStatusMapper(sliceTextMapper);
+	myInteractorStyle->m_imageData = dicomReader->GetOutput();
+	short *ptr0 = static_cast<short*>(m_imageData->GetScalarPointer(280,226,132));
+	qDebug() << "tt:" << *ptr0;
+
+	imageViewer->SetSlice(imageViewer->GetSliceMax());
+	imageViewer->SetupInteractor(renderWindowInteractor);
+	renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+	imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
+	imageViewer->Render();
+
+	imageViewer->GetRenderer()->ResetCamera();
+	vtkCamera* camera = imageViewer->GetRenderer()->GetActiveCamera();
+	double dataCenterPos[3]={(m_dim[0]-1)*m_spacing[0]/2,
+							 (m_dim[1]-1)*m_spacing[1]/2,
+							 (m_dim[2]-1)*m_spacing[2]/2};
+	double viewup[3] = {0,1,0};
+	camera->SetParallelProjection(1);
+	camera->SetPosition(dataCenterPos[0],dataCenterPos[1],dataCenterPos[2]+500);
+	camera->SetFocalPoint(dataCenterPos[0],dataCenterPos[1],dataCenterPos[2]);
+	camera->SetViewUp(viewup);
+	camera->SetParallelScale(dataCenterPos[1]);
+	camera->SetClippingRange(0,10000);
+	camera->Modified();
+
+	imageViewer->Render();
+	renderWindowInteractor->Start();
 }

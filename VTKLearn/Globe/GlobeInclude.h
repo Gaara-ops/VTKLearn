@@ -46,6 +46,9 @@
 #include <vtkImageSlice.h>
 #include <vtkImageViewer2.h>
 #include <vtkImageThreshold.h>
+#include <vtkInteractorStyleImage.h>
+#include <vtkImageSliceMapper.h>
+#include <vtkImageMapToWindowLevelColors.h>
 
 #include <vtkLight.h>
 #include <vtkLightCollection.h>
@@ -90,6 +93,8 @@
 #include <vtksys/SystemTools.hxx>
 
 #include <vtkTransform.h>
+#include <vtkTextProperty.h>
+#include <vtkTextMapper.h>
 
 #include <vtkVolumeProperty.h>
 #include <vtkVolume16Reader.h>
@@ -107,13 +112,13 @@
 #include <vtkSTLReader.h>
 #include <vtkXMLPolyDataReader.h>
 
-
 //c++
 #include <iostream>
 #include <array>
 #include <vector>
 #include <math.h>
 #include <synchapi.h>
+#include <sstream>
 
 //qt
 #include <QDebug>

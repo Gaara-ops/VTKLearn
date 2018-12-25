@@ -1,8 +1,9 @@
 #ifndef INTERACTORTEST_H
 #define INTERACTORTEST_H
 
-#include "GlobeInclude.h"
+#include "../Globe/GlobeInclude.h"
 #include "GlobeFunc.h"
+#include "myfunc.h"
 
 class MouseInteractorStyleTest : public vtkInteractorStyleTrackballCamera{
 public:
@@ -30,7 +31,7 @@ public:
         //屏幕坐标
         int* pos = this->GetInteractor()->GetEventPosition();
         double pos3d[3];
-        bool bPicked = GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
+		bool bPicked = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
         if(drawline){
             leftBtnDown = true;
             if(bPicked){
@@ -56,7 +57,7 @@ public:
         if(leftBtnDown && drawline){
             int* pos = this->GetInteractor()->GetEventPosition();
             double pos3d[3];
-            bool bPicked = GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
+			bool bPicked = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
             if(bPicked){
                 clickPoints->InsertNextPoint(pos3d[0],pos3d[1],pos3d[2]);
                 DrawLine();
@@ -123,7 +124,7 @@ public:
     //绘制多边形点集
     void DrawPoints(){
         double color[3] = {0,0,1};
-        CreatePointActor(allPolyPoints,allPointActor,color);
+		MyFunc::CreatePointActor(allPolyPoints,allPointActor,color);
         this->DefaultRenderer->AddActor(allPointActor);
         this->DefaultRenderer->GetRenderWindow()->Render();
     }
@@ -140,15 +141,15 @@ public:
         double* direct = this->DefaultRenderer->GetActiveCamera()->GetViewPlaneNormal();
         double noramlXOY[3] = {0,0,1};
         double nouse;
-        if(GetCrossVec(noramlXOY,direct,nouse)<0){
+		if(MyFunc::GetCrossVec(noramlXOY,direct,nouse)<0){
             noramlXOY[2] = -1;
         }
         double noramlXOZ[3] = {0,1,0};
-        if(GetCrossVec(noramlXOZ,direct,nouse)<0){
+		if(MyFunc::GetCrossVec(noramlXOZ,direct,nouse)<0){
             noramlXOZ[1] = -1;
         }
         double noramlYOZ[3] = {1,0,0};
-        if(GetCrossVec(noramlYOZ,direct,nouse)<0){
+		if(MyFunc::GetCrossVec(noramlYOZ,direct,nouse)<0){
             noramlYOZ[0] = -1;
         }
         bool planeIsShow[3] = {1,1,1};
@@ -184,8 +185,8 @@ public:
                     int tempXOZ1 = 1;
                     int tempXOZ2 = 1;
                     if(planeIsShow[1]==1){
-                        tempXOZ1 = GetCrossVec(tempP2O,noramlXOZ,crossvalue1);
-                        tempXOZ2 = GetCrossVec(direct,noramlXOZ,crossvalue2);
+						tempXOZ1 = MyFunc::GetCrossVec(tempP2O,noramlXOZ,crossvalue1);
+						tempXOZ2 = MyFunc::GetCrossVec(direct,noramlXOZ,crossvalue2);
                     }
                     if(tempXOZ1*tempXOZ2>0){
                         bool isshow = true;
@@ -237,8 +238,8 @@ public:
                     int tempXOY1 = 1;
                     int tempXOY2 = 1;
                     if(planeIsShow[2]==1){
-                        tempXOY1 = GetCrossVec(tempP2O,noramlXOY,crossvalue1);
-                        tempXOY2 = GetCrossVec(direct,noramlXOY,crossvalue2);
+						tempXOY1 = MyFunc::GetCrossVec(tempP2O,noramlXOY,crossvalue1);
+						tempXOY2 = MyFunc::GetCrossVec(direct,noramlXOY,crossvalue2);
                     }
 
                     if(tempXOY1*tempXOY2>0){
@@ -291,8 +292,8 @@ public:
                     int tempXOY1 = 1;
                     int tempXOY2 = 1;
                     if(planeIsShow[2]==1){
-                        tempXOY1 = GetCrossVec(tempP2O,noramlXOY,crossvalue1);
-                        tempXOY2 = GetCrossVec(direct,noramlXOY,crossvalue2);
+						tempXOY1 = MyFunc::GetCrossVec(tempP2O,noramlXOY,crossvalue1);
+						tempXOY2 = MyFunc::GetCrossVec(direct,noramlXOY,crossvalue2);
                     }
 
                     if(tempXOY1*tempXOY2>0){
@@ -336,8 +337,8 @@ public:
     //点是否被平面遮挡
     bool PointInPlane(double P2ODirect[3],double normal[3],double direct[3],double Point[3],double bound[6],int type){
         double crossvalue1,crossvalue2;
-        int temp1 = GetCrossVec(P2ODirect,normal,crossvalue1);
-        int temp2 = GetCrossVec(direct,normal,crossvalue2);
+		int temp1 = MyFunc::GetCrossVec(P2ODirect,normal,crossvalue1);
+		int temp2 = MyFunc::GetCrossVec(direct,normal,crossvalue2);
         if(temp1*temp2 > 0){
             return true;
         }else{

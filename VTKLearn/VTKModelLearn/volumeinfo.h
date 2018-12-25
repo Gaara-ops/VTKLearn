@@ -21,6 +21,8 @@ public:
     vtkRenderWindow* vtkwindow;
     vtkRenderer* renderer;
 	vtkImageData* oriImageData;
+
+	void initPlaneInfo();
 private slots:
     void on_LightUpdateBtn_clicked();
 
@@ -29,6 +31,8 @@ private slots:
     void on_ShadeUpdateBtn_clicked();
 
 	void on_ThresholdBtn_clicked();
+
+	void on_ClipPlaneBtn_clicked();
 
 private:
     Ui::VolumeInfo *ui;

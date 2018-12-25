@@ -25,7 +25,6 @@ SOURCES += main.cpp\
 #    ctkwidgettest.cpp
 
 HEADERS  += mainwindow.h \
-    GlobeInclude.h \
 #    ctkwidgettest.h
     interactortest.h \
     mymath.h \
@@ -34,7 +33,8 @@ HEADERS  += mainwindow.h \
     GlobeFunc.h \
     volumeinfo.h \
     ggmath.h \
-    myfunc.h
+    myfunc.h \
+    MyDiocmInteractorStyleImage.h
 
 FORMS    += mainwindow.ui \
     volumeinfo.ui

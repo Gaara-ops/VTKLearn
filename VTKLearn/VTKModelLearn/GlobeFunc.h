@@ -1,52 +1,6 @@
 #ifndef GLOBEFUNC_H
 #define GLOBEFUNC_H
-#include"GlobeInclude.h"
-
-//2d转3d点--到物体表面
-bool GetPos3DBy2D_1(vtkRenderer* render,int* pos,double pos3d[3]){
-    vtkSmartPointer<vtkCellPicker> picker =
-      vtkSmartPointer<vtkCellPicker>::New();
-    picker->SetTolerance(0.0005);
-    bool isPicked = picker->Pick(pos[0], pos[1], 0, render);
-    if(isPicked){
-        double* temppos = picker->GetPickPosition();
-        pos3d[0]=temppos[0];pos3d[1]=temppos[1];pos3d[2]=temppos[2];
-    }else{
-        return false;
-    }
-    return true;
-}
-//向量x乘
-int GetCrossVec(double vec1[3],double vec2[3],double& crossvalue){
-    double temp = vec1[0]*vec2[0]+vec1[1]*vec2[1]+vec1[2]*vec2[2];
-    crossvalue = temp;
-    if(temp > 0){
-        return 1;
-    }else if(temp < 0){
-        return -1;
-    }else{
-        return 0;
-    }
-}
-//创建点接口---点集
-void CreatePointActor(vtkPoints* points,vtkActor* pActor,double color[3],
-                        float pSize=3,double opacity=0.2){
-    vtkSmartPointer<vtkPolyData> polydata =
-      vtkSmartPointer<vtkPolyData>::New();
-    polydata->SetPoints(points);
-
-    vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter =
-        vtkSmartPointer<vtkVertexGlyphFilter>::New();
-    glyphFilter->SetInputData(polydata);
-    glyphFilter->Update();
-    vtkSmartPointer<vtkPolyDataMapper> mapper =
-      vtkSmartPointer<vtkPolyDataMapper>::New();
-    mapper->SetInputData(glyphFilter->GetOutput());
-    pActor->SetMapper(mapper);
-    pActor->GetProperty()->SetPointSize(pSize);
-    pActor->GetProperty()->SetColor(color);
-    pActor->GetProperty()->SetOpacity(opacity);
-}
+#include"../Globe/GlobeInclude.h"
 
 //创建线接口
 void CreateLineActor(vtkPoints* points,vtkActor* lactor,double color[3],int linewidth=1){

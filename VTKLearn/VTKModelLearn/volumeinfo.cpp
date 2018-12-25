@@ -1,6 +1,6 @@
 #include "volumeinfo.h"
 #include "ui_volumeinfo.h"
-#include "GlobeInclude.h"
+#include "../Globe/GlobeInclude.h"
 #include "myfunc.h"
 
 VolumeInfo::VolumeInfo(QWidget *parent) :
@@ -23,7 +23,7 @@ VolumeInfo::VolumeInfo(QWidget *parent) :
     ui->lineEdit_SS->setText("0.5");
     ui->lineEdit_SSP->setText("50");
     ui->lineEdit_SSD->setText("0.5");
-
+	///阈值筛选
 	ui->lineEdit_minV->setText("200");
 	ui->lineEdit_maxV->setText("400");
     }
@@ -31,7 +31,26 @@ VolumeInfo::VolumeInfo(QWidget *parent) :
 
 VolumeInfo::~VolumeInfo()
 {
-    delete ui;
+	delete ui;
+}
+
+void VolumeInfo::initPlaneInfo()
+{
+	///平面设置
+	int dim[3];double spacing[3];
+	oriImageData->GetDimensions(dim);
+	oriImageData->GetSpacing(spacing);
+	double center[3] = {(dim[0]-1)*spacing[0]/2,(dim[1]-1)*spacing[1]/2,
+					   (dim[2]-1)*spacing[2]/2};
+	double* direction=renderer->GetActiveCamera()->GetDirectionOfProjection();
+	QString oristr = QString::number(center[0])+ "," ;
+			oristr += QString::number(center[1])+"," ;
+			oristr += QString::number(center[2]);
+	QString dirstr = QString::number(direction[0])+ "," ;
+			dirstr += QString::number(direction[1])+"," ;
+			dirstr += QString::number(direction[2]);
+	ui->lineEdit_Origin->setText(oristr);
+	ui->lineEdit_Direction->setText(dirstr);
 }
 
 void VolumeInfo::on_LightUpdateBtn_clicked()
@@ -128,5 +147,33 @@ void VolumeInfo::on_ThresholdBtn_clicked()
 	colorFun->Modified();
 
 	test->Modified();
+	vtkwindow->Render();
+}
+
+void VolumeInfo::on_ClipPlaneBtn_clicked()
+{
+	initPlaneInfo();
+	int dim[3];double spacing[3];
+	oriImageData->GetDimensions(dim);
+	oriImageData->GetSpacing(spacing);
+	double center[3] = {(dim[0]-1)*spacing[0]/2,(dim[1]-1)*spacing[1]/2,
+					   (dim[2]-1)*spacing[2]/2};
+	double* direction=renderer->GetActiveCamera()->GetDirectionOfProjection();
+	/**
+	 * 用面对体进行切割*/
+	vtkSmartPointer<vtkPlane> plane =
+	  vtkSmartPointer<vtkPlane>::New();
+	plane->SetOrigin(center);
+	plane->SetNormal(direction);
+
+	vtkVolume* test =  (vtkVolume*)(renderer->GetVolumes()->GetLastProp());
+	vtkGPUVolumeRayCastMapper* gmapper =
+			(vtkGPUVolumeRayCastMapper*)(test->GetMapper());
+
+	vtkSmartPointer<vtkPlaneCollection> planes =
+	  vtkSmartPointer<vtkPlaneCollection>::New();
+	planes->AddItem(plane);
+	gmapper->SetClippingPlanes(planes);
+	gmapper->Modified();
 	vtkwindow->Render();
 }

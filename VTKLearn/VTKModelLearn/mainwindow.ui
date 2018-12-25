@@ -95,6 +95,7 @@
     </widget>
     <addaction name="menuGetEdge"/>
     <addaction name="actionHistogram"/>
+    <addaction name="actionSliceShow"/>
    </widget>
    <addaction name="menuDock"/>
    <addaction name="menuCreate"/>
@@ -177,6 +178,11 @@
   <action name="actionHistogram">
    <property name="text">
     <string>Histogram</string>
+   </property>
+  </action>
+  <action name="actionSliceShow">
+   <property name="text">
+    <string>SliceShow</string>
    </property>
   </action>
  </widget>
