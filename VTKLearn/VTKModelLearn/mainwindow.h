@@ -60,7 +60,7 @@ private slots:
 	void on_actionCannyEdge_triggered();
 
 	void on_actionHistogram_triggered();
-
+	//显示一系列dicom文件，包含区域增长
 	void on_actionSliceShow_triggered();
 
 private:

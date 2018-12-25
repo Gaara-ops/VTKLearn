@@ -30,7 +30,6 @@ HEADERS  += mainwindow.h \
     mymath.h \
     showimage.h \
     myraycastimage.h \
-    GlobeFunc.h \
     volumeinfo.h \
     ggmath.h \
     myfunc.h \

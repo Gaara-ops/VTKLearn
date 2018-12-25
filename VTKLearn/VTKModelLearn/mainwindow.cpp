@@ -3,7 +3,6 @@
 #include "../Globe/GlobeInclude.h"
 
 #include "interactortest.h"
-#include "GlobeFunc.h"
 #include "myfunc.h"
 #include "MyDiocmInteractorStyleImage.h"
 vtkStandardNewMacro(myVtkInteractorStyleImage);
@@ -21,7 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     dicomReader = vtkDICOMImageReader::New();
     vtkDataArray* scalarsArr = NULL;
     double scalarRange[2];
-    ReadDicomData(dicomReader,dirname,m_dim,m_spacing,scalarRange,m_imageData,scalarsArr);
+	MyFunc::ReadDicomData(dicomReader,dirname,m_dim,m_spacing,
+						  scalarRange,m_imageData,scalarsArr);
     /*对数据进行抽样
     float factors[3] = {0.5,0.5,1};
     ResampleData(m_imageData,factors);*/
@@ -126,9 +126,9 @@ void MainWindow::testCreateContext()
 	extractVOI->SetInputConnection(dicomReader->GetOutputPort());
 	extractVOI->SetVOI(0,m_dim[0]/2,0,m_dim[1]/2,0,m_dim[2]/2);
 	extractVOI->Update();
-	CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);
+	MyFunc::CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);
 
-	CreateThreeSlice(m_dim,renderer,dicomReader);
+	MyFunc::CreateThreeSlice(m_dim,renderer,dicomReader);
 	renderer->ResetCamera();
 	ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -227,7 +227,7 @@ void MainWindow::on_actionVolume_triggered()
 	extractVOI->SetVOI(0,m_dim[0]/2,0,m_dim[1]/2,0,m_dim[2]/2);
 	extractVOI->Update();
 	CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);*/
-	CreateVolume(m_imageData,0,1,0,renderer);
+	MyFunc::CreateVolume(m_imageData,0,1,0,renderer);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -236,7 +236,7 @@ void MainWindow::on_actionSurface_triggered()
 {
     DeleteAllThing();
 	double color[3]={1,0,0};
-	CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true,5);
+	MyFunc::CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true,5);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -245,7 +245,7 @@ void MainWindow::on_actionLargestRegion_triggered()
 {
     DeleteAllThing();
     double color[3]={1,0,0};
-    CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true);
+	MyFunc::CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -259,7 +259,7 @@ void MainWindow::on_actionClear_triggered()
 void MainWindow::on_actionMIP_triggered()
 {
     DeleteAllThing();
-    CreateVolume(m_imageData,1,1,0,renderer);
+	MyFunc::CreateVolume(m_imageData,1,1,0,renderer);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -277,8 +277,8 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_ClipFrustum_triggered()
 {
     DeleteAllThing();
-    std::string filepath = "../../Data/ply/Armadillo.ply";
-    CreateClipFrustum(renderer,filepath.c_str());
+	std::string filepath = "E:/workspace/Data/ply/Armadillo.ply";
+	MyFunc::CreateClipFrustum(renderer,filepath.c_str());
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
 
@@ -297,7 +297,7 @@ void MainWindow::on_actionClearLine_triggered()
 void MainWindow::on_actionCreateThreeSlice_triggered()
 {
 	DeleteAllThing();
-	CreateThreeSlice(m_dim,renderer,dicomReader);
+	MyFunc::CreateThreeSlice(m_dim,renderer,dicomReader);
 
 	m_mouseInter = MouseInteractorStyleTest::New();
 	m_mouseInter->centerPos[0] = m_dim[0]*m_spacing[0]/2;

@@ -2,7 +2,6 @@
 #define INTERACTORTEST_H
 
 #include "../Globe/GlobeInclude.h"
-#include "GlobeFunc.h"
 #include "myfunc.h"
 
 class MouseInteractorStyleTest : public vtkInteractorStyleTrackballCamera{
@@ -73,7 +72,7 @@ public:
         }
         double color[3] = {1,0,0};
         qDebug() <<"point size:" << clickPoints->GetNumberOfPoints();
-        CreateLineActor(clickPoints,lineactor,color);
+		MyFunc::CreateLineActor(clickPoints,lineactor,color);
         this->DefaultRenderer->AddActor(lineactor);
         initline = false;
         this->DefaultRenderer->GetRenderWindow()->Render();
