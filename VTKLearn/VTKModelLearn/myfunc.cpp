@@ -204,12 +204,16 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 		property->SetSpecularPower(50.0);
 	}
 	if(blendmode == 1){
-		colorFun->AddRGBPoint( 100, 1, 1, 1);
-		colorFun->AddRGBPoint( 400, 1, 1, 1 );
-		colorFun->ClampingOn();
-		opacityFun->AddPoint(100, 1 );
-		opacityFun->AddPoint(400, 1 );
-		opacityFun->ClampingOn();
+		colorFun->AddRGBPoint( 0, 0, 0, 0);
+		colorFun->AddRGBPoint( 1023, 0.5, 0.5, 0.5);
+		colorFun->AddRGBPoint( 1024, 1, 0, 0);
+		colorFun->AddRGBPoint( 1025, 0.5, 0.5, 0.5 );
+		colorFun->AddRGBPoint( 2048, 1, 1, 1 );
+		opacityFun->AddPoint(0, 0 );
+		opacityFun->AddPoint(2048, 1 );
+		property->SetColor( colorFun );
+		property->SetScalarOpacity( opacityFun );
+		property->SetInterpolationTypeToLinear();
 	}
 	vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
 	volume->SetProperty( property );
@@ -546,4 +550,63 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 	camera->Modified();
 	imageViewer->Render();
 	renderWindowInteractor->Start();
+}
+
+void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata)
+{
+	int numchangepos = 0;
+	int threshold=50;//差值
+	int replaceValue = 1024;
+
+	int nScrValue=0;//生长起始点的灰度值
+	int nCurValue=0;//当前生长点的灰度值
+	int DIR[26][3]={{-1,-1,0}, {0,-1,0}, {1,-1,0}, {1,0,0},
+					{1,1,0}, {0,1,0}, {-1,1,0}, {-1,0,0},
+		   {0,0,1}, {-1,-1,1}, {0,-1,1}, {1,-1,1}, {1,0,1},
+					{1,1,1}, {0,1,1}, {-1,1,1}, {-1,0,1},
+	{0,0,-1}, {-1,-1,-1}, {0,-1,-1}, {1,-1,-1}, {1,0,-1},
+					{1,1,-1}, {0,1,-1}, {-1,1,-1}, {-1,0,-1}};
+	QVector<QVector3D> vcGrowpt;//生长点的堆栈
+	//将初始生长点压入堆栈
+	vcGrowpt.push_back(QVector3D(startDim[0],startDim[1],startDim[2]));
+	//标记初始生长点
+	short *ptr0 = static_cast<short*>(imagedata->GetScalarPointer(
+									startDim[0],startDim[1],startDim[2]));
+	nScrValue = (int)(*ptr0);
+	*ptr0 = replaceValue;
+	qDebug() << "nScrValue:"<<nScrValue;
+	double spacing[3];
+	int dim[3];
+	imagedata->GetDimensions(dim);
+	imagedata->GetSpacing(spacing);
+	QVector3D ptGrowing;//待生长点的位置
+	while(!vcGrowpt.empty())
+	{
+		QVector3D curpt=vcGrowpt.back();//在堆栈中取出一个生长点
+		vcGrowpt.pop_back();
+		for(int i=0;i<26;i++)
+		{
+			ptGrowing.setX(curpt.x()+DIR[i][0]);
+			ptGrowing.setY(curpt.y()+DIR[i][1]);
+			ptGrowing.setZ(curpt.z()+DIR[i][2]);
+			if(ptGrowing.x()<0 || ptGrowing.y()<0 ||
+					ptGrowing.z()<0 || (ptGrowing.x()>=dim[0]) ||
+					(ptGrowing.y()>=dim[1]) || ptGrowing.z()>=dim[2]){
+				continue;
+			}
+			short *ptr = static_cast<short*>(imagedata->GetScalarPointer(
+								ptGrowing.x(),ptGrowing.y(),ptGrowing.z()));
+			nCurValue=*ptr;
+			if (nCurValue!=replaceValue)//表示还未标记过
+			{
+				if(abs(nCurValue-nScrValue)<=threshold)
+				{
+					numchangepos++;
+					*ptr = replaceValue;
+					vcGrowpt.push_back(ptGrowing);
+				}
+			}
+		}
+	}
+	qDebug() << "end!!" << numchangepos;
 }

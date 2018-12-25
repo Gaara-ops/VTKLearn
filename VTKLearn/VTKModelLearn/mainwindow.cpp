@@ -269,9 +269,17 @@ void MainWindow::on_pushButton_clicked()
 	///测试用
 	/*测试延中心线移动
 	testBtnResponse1();*/
-	/*测试三个切片和部分体,移动部分体*/
-	testBtnResponse2();
+	/*测试三个切片和部分体,移动部分体
+	testBtnResponse2();*/
+
+	/*测试三维中种子增长*/
+	int dimstart[3] = {280,284,132};
+	MyFunc::VolumeSeedGrowth(dimstart,m_imageData);
+	m_imageData->Modified();
+	ui->qvtkWidget->GetRenderWindow()->Render();
 	///end
+
+
 }
 
 void MainWindow::on_ClipFrustum_triggered()

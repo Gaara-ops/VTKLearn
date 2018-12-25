@@ -42,6 +42,8 @@ public:
 	static void CreateClipFrustum(vtkRenderer* renderer,const char *fileName);
 	//显示一系列dicom图像
 	static void ShowSeriesDicom(vtkDICOMImageReader* reader);
+	//三维体区域生产
+	static void VolumeSeedGrowth(int startDim[3],vtkImageData* imagedata);
 };
 
 #endif // MYFUNC_H
