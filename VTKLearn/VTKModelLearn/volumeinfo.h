@@ -23,6 +23,8 @@ public:
 	vtkImageData* oriImageData;
 
 	void initPlaneInfo();
+	void initSeedInfo(QString seedpos,short tmpct);
+	void initSeedInfo(double seedpos[3]);
 private slots:
     void on_LightUpdateBtn_clicked();
 
@@ -33,6 +35,8 @@ private slots:
 	void on_ThresholdBtn_clicked();
 
 	void on_ClipPlaneBtn_clicked();
+
+	void on_SeedGrowthBtn_clicked();
 
 private:
     Ui::VolumeInfo *ui;

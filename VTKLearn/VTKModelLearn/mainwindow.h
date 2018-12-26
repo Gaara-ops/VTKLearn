@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include "MouseInteractorStyle.h"
 class vtkRenderer;
 class vtkLight;
 class vtkDICOMImageReader;
@@ -68,6 +68,7 @@ private:
     void InitCamera();
 private:
     Ui::MainWindow *ui;
+	MouseInteractorStyle* m_volumeStyle;
 	VolumeInfo* m_volumeInfo;
 
     int m_dim[3];

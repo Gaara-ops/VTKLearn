@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	//初始化一些信息
     InitInfo();
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
+	ui->qvtkWidget->GetInteractor()->SetInteractorStyle(m_volumeStyle);
     ui->qvtkWidget->GetRenderWindow()->Render();
 
 	///测试用
@@ -173,7 +174,7 @@ void MainWindow::DeleteAllThing()
     }
 
     int numActor2Ds = renderer->GetActors2D()->GetNumberOfItems();
-    qDebug() << "numActor2Ds: "<< numActor2Ds;
+	qDebug() << "numActor2Ds: "<< numActor2Ds;
 }
 
 void MainWindow::InitInfo()
@@ -183,6 +184,8 @@ void MainWindow::InitInfo()
     light1->SetColor(0.0,0.0,0.0);
     //渲染器
 	renderer = vtkRenderer::New();
+	m_volumeStyle = MouseInteractorStyle::New();
+	m_volumeStyle->SetDefaultRenderer(renderer);
 	InitCamera();
 }
 
@@ -212,8 +215,20 @@ void MainWindow::on_actionVoumeInfo_triggered()
 		m_volumeInfo->vtkwindow = ui->qvtkWidget->GetRenderWindow();
 		m_volumeInfo->renderer = renderer;
 		m_volumeInfo->oriImageData = dicomReader->GetOutput();
+		m_volumeStyle->seedUpdate = m_volumeInfo;
 	}
 	m_volumeInfo->initPlaneInfo();
+	if(m_volumeStyle->lastClickRes){
+		int dimx = m_volumeStyle->lastPos[0]/m_spacing[0];
+		int dimy = m_volumeStyle->lastPos[1]/m_spacing[1];
+		int dimz = m_volumeStyle->lastPos[2]/m_spacing[2];
+		QString seedpos = QString::number(dimx)+","+
+				QString::number(dimy)+","+QString::number(dimz);
+
+		short *tmpct = static_cast<short*>(m_imageData->GetScalarPointer(
+										dimx,dimy,dimz));
+		m_volumeInfo->initSeedInfo(seedpos,*tmpct);
+	}
 	m_volumeInfo->setVisible(!m_volumeInfo->isVisible());
 }
 
@@ -273,13 +288,14 @@ void MainWindow::on_pushButton_clicked()
 	testBtnResponse2();*/
 
 	/*测试三维中种子增长*/
-	int dimstart[3] = {280,284,132};
-	MyFunc::VolumeSeedGrowth(dimstart,m_imageData);
+	int dimstart1[3] = {280,284,132};//test 1
+	double tmpPos[3] = {175.438,142.456,330};
+	int dimstart2[3] = {tmpPos[0]/m_spacing[0],tmpPos[1]/m_spacing[1],
+					   tmpPos[2]/m_spacing[2]};//test 2_600
+	MyFunc::VolumeSeedGrowth(dimstart1,m_imageData);
 	m_imageData->Modified();
 	ui->qvtkWidget->GetRenderWindow()->Render();
 	///end
-
-
 }
 
 void MainWindow::on_ClipFrustum_triggered()

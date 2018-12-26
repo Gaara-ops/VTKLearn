@@ -43,7 +43,8 @@ public:
 	//显示一系列dicom图像
 	static void ShowSeriesDicom(vtkDICOMImageReader* reader);
 	//三维体区域生产
-	static void VolumeSeedGrowth(int startDim[3],vtkImageData* imagedata);
+	static void VolumeSeedGrowth(int startDim[3],vtkImageData* imagedata,
+								int threshold=50);
 };
 
 #endif // MYFUNC_H

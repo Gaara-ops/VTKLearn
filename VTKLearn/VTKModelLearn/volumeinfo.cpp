@@ -27,6 +27,8 @@ VolumeInfo::VolumeInfo(QWidget *parent) :
 	ui->lineEdit_minV->setText("200");
 	ui->lineEdit_maxV->setText("400");
     }
+
+	ui->lineEdit_SeedThreshold->setText("50");
 }
 
 VolumeInfo::~VolumeInfo()
@@ -51,6 +53,27 @@ void VolumeInfo::initPlaneInfo()
 			dirstr += QString::number(direction[2]);
 	ui->lineEdit_Origin->setText(oristr);
 	ui->lineEdit_Direction->setText(dirstr);
+}
+
+void VolumeInfo::initSeedInfo(QString seedpos, short tmpct)
+{
+	ui->lineEdit_SeedPos->setText(seedpos);
+	ui->lineEdit_SeedCT->setText(QString::number(tmpct));
+}
+
+void VolumeInfo::initSeedInfo(double seedpos[])
+{
+	double spacing[3];
+	oriImageData->GetSpacing(spacing);
+	int dimx = seedpos[0]/spacing[0];
+	int dimy = seedpos[1]/spacing[1];
+	int dimz = seedpos[2]/spacing[2];
+	QString seedposstr = QString::number(dimx)+","+
+			QString::number(dimy)+","+QString::number(dimz);
+
+	short *tmpct = static_cast<short*>(oriImageData->GetScalarPointer(
+									dimx,dimy,dimz));
+	initSeedInfo(seedposstr,*tmpct);
 }
 
 void VolumeInfo::on_LightUpdateBtn_clicked()
@@ -176,4 +199,17 @@ void VolumeInfo::on_ClipPlaneBtn_clicked()
 	gmapper->SetClippingPlanes(planes);
 	gmapper->Modified();
 	vtkwindow->Render();
+}
+
+void VolumeInfo::on_SeedGrowthBtn_clicked()
+{
+	QString pos = ui->lineEdit_SeedPos->text();
+	short threshold = ui->lineEdit_SeedThreshold->text().toShort();
+	QStringList tmplist = pos.split(",");
+	if(tmplist.size() == 3){
+		int dimstart[3]= { tmplist.at(0).toInt(),
+						   tmplist.at(1).toInt(),tmplist.at(2).toInt() };
+		MyFunc::VolumeSeedGrowth(dimstart,oriImageData,threshold);
+		qDebug() << "grow end!";
+	}
 }

@@ -129,6 +129,7 @@
 #include <QList>
 #include <QVector3D>
 #include <QFile>
+#include <QMouseEvent>
 
 //ctk
 //#include <ctkCheckablePushButton.h>

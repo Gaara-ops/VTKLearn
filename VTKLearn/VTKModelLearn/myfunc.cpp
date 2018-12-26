@@ -552,20 +552,22 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 	renderWindowInteractor->Start();
 }
 
-void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata)
+void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,
+							  int threshold)
 {
 	int numchangepos = 0;
-	int threshold=50;//差值
 	int replaceValue = 1024;
 
 	int nScrValue=0;//生长起始点的灰度值
 	int nCurValue=0;//当前生长点的灰度值
-	int DIR[26][3]={{-1,-1,0}, {0,-1,0}, {1,-1,0}, {1,0,0},
+	/*int DIR[26][3]={{-1,-1,0}, {0,-1,0}, {1,-1,0}, {1,0,0},
 					{1,1,0}, {0,1,0}, {-1,1,0}, {-1,0,0},
 		   {0,0,1}, {-1,-1,1}, {0,-1,1}, {1,-1,1}, {1,0,1},
 					{1,1,1}, {0,1,1}, {-1,1,1}, {-1,0,1},
 	{0,0,-1}, {-1,-1,-1}, {0,-1,-1}, {1,-1,-1}, {1,0,-1},
-					{1,1,-1}, {0,1,-1}, {-1,1,-1}, {-1,0,-1}};
+					{1,1,-1}, {0,1,-1}, {-1,1,-1}, {-1,0,-1}};*/
+	int DIR[6][3]={{0,-1,0}, {1,0,0}, {0,1,0},
+					{-1,0,0}, {0,0,1}, {0,0,-1}};
 	QVector<QVector3D> vcGrowpt;//生长点的堆栈
 	//将初始生长点压入堆栈
 	vcGrowpt.push_back(QVector3D(startDim[0],startDim[1],startDim[2]));
@@ -584,7 +586,7 @@ void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata)
 	{
 		QVector3D curpt=vcGrowpt.back();//在堆栈中取出一个生长点
 		vcGrowpt.pop_back();
-		for(int i=0;i<26;i++)
+		for(int i=0;i<6;i++)
 		{
 			ptGrowing.setX(curpt.x()+DIR[i][0]);
 			ptGrowing.setY(curpt.y()+DIR[i][1]);

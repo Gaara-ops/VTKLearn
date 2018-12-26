@@ -33,7 +33,8 @@ HEADERS  += mainwindow.h \
     volumeinfo.h \
     ggmath.h \
     myfunc.h \
-    MyDiocmInteractorStyleImage.h
+    MyDiocmInteractorStyleImage.h \
+    MouseInteractorStyle.h
 
 FORMS    += mainwindow.ui \
     volumeinfo.ui
