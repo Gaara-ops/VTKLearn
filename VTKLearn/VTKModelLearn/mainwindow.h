@@ -26,15 +26,16 @@ public:
 	///所有测试接口
 	//测试延中心线移动
 	QVector<QVector3D> m_posVec;
+	vtkSphereSource* m_testSphere;
+	vtkParametricFunctionSource* m_testSource;
 	void testReadPoint();
+	void testCreateSphere(double center[]);
 	void testBtnResponse1();
-	//测试三个切片和部分体,移动部分体
-	void testCreateContext();
-	void testBtnResponse2();
 	///end
     //绘制之前删除render中的actor或prop
     void DeleteAllThing();
 private slots:
+	void slotTimeOut();
 	//测试按钮
 	void on_pushButton_clicked();
 
@@ -66,8 +67,10 @@ private slots:
 private:
     void InitInfo();
     void InitCamera();
+	void InitCameraPespective();
 private:
     Ui::MainWindow *ui;
+	QTimer* m_timer;
 	MouseInteractorStyle* m_volumeStyle;
 	VolumeInfo* m_volumeInfo;
 

@@ -33,13 +33,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_thickness = 5;
+	m_thickness = 5;
     //读取dicom文件
     m_dicomReader = vtkDICOMImageReader::New();
 	m_dicomReader->SetDirectoryName("E:/workspace/DICOM/133ceng");
-    m_dicomReader->Update();
-    m_dicomReader->GetOutput()->GetDimensions(m_dimension);
-    m_dicomReader->GetOutput()->GetSpacing(m_spacing);
+	m_dicomReader->Update();
+	m_dicomReader->GetOutput()->GetDimensions(m_dimension);
+	m_dicomReader->GetOutput()->GetSpacing(m_spacing);
 
     //初始化
     for(int i=0; i<4; i++){
@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //        m_render[i]->GetActiveCamera()->SetParallelProjection(1);
 //        m_render[i]->ResetCamera();
         m_resliceMapper[i] = vtkImageResliceMapper::New();
-        m_resliceMapper[i]->SetInputData(m_dicomReader->GetOutput());
+		m_resliceMapper[i]->SetInputData(m_dicomReader->GetOutput());
     }
     for(int i=0;i<3; i++){
         m_center[i] = m_dimension[i]*m_spacing[i]/2;
@@ -55,11 +55,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
         m_style[i] = MouseInteractorStyleTest::New();
         m_style[i]->SetDefaultRenderer(m_render[i]);
-        m_dicomReader->GetOutput()->GetDimensions(m_style[i]->dimension);
-        m_dicomReader->GetOutput()->GetSpacing(m_style[i]->spacing);
+		m_dicomReader->GetOutput()->GetDimensions(m_style[i]->dimension);
+		m_dicomReader->GetOutput()->GetSpacing(m_style[i]->spacing);
         m_style[i]->slicemapper = m_resliceMapper[i];
-        m_style[i]->imageData = m_dicomReader->GetOutput();
-        m_style[i]->reSampleData();
+		m_style[i]->imageData = m_dicomReader->GetOutput();
+		m_style[i]->reSampleData();
 
         m_style[i]->view4Renderer = m_render[3];
         m_style[i]->view4SliceMapper = m_resliceMapper[3];
@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initView4Surface();
     initSlider();
 
-    vtkImageReslice *reslicetest = vtkImageReslice::New();
+	vtkImageReslice *reslicetest = vtkImageReslice::New();
     reslicetest->SetInputData(m_dicomReader->GetOutput());
     reslicetest->SetOutputExtent(0,1,0,1,0,10);
     reslicetest->SetSlabModeToMax();
@@ -85,11 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
     reslicetest->Modified();
     vtkImageData* imagetest = reslicetest->GetOutput();
     int dimtest[3];
-    imagetest->GetDimensions(dimtest);
-    double spacingtest[3];
-    imagetest->GetSpacing(spacingtest);
-    qDebug() << "dim:" << dimtest[0] << " "<< dimtest[1] << " "<< dimtest[2] << " ";
-    qDebug() << "spacingtest:" << spacingtest[0] << " "<< spacingtest[1] << " "<< spacingtest[2] << " ";
+	imagetest->GetDimensions(dimtest);
+	double spacingtest[3];
+	imagetest->GetSpacing(spacingtest);
+	qDebug() << "dim:" << dimtest[0] << " "<< dimtest[1] << " "<< dimtest[2] << " ";
+	qDebug() << "spacingtest:" << spacingtest[0] << " "<< spacingtest[1] << " "<< spacingtest[2] << " ";
 
 
 }
@@ -113,7 +113,7 @@ void MainWindow::initView1()
     camera1->SetPosition(m_center[0],m_center[1],-(m_center[2]+100));
     camera1->SetFocalPoint(m_center);
     camera1->SetViewUp(0,1,0);
-    camera1->SetParallelScale(m_center[1]*2);
+	camera1->SetParallelScale(m_center[1]*2);
     qDebug() << "test scale:" << m_center[1];
 
     initView(ui->view1,normal,m_render[0],m_resliceMapper[0],camera1,m_thickness);

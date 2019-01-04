@@ -7,11 +7,19 @@ class MyFunc
 {
 public:
 	MyFunc();
+	//对体进行插值
+	static bool InterpolateImagedata(vtkImageData* oridata,
+									 vtkImageData* interpolatedata,
+									 int interpolatetype=0);
+	//创建体的三个维度的切片
+	static bool CreateImageDataXYZSlice(vtkImageData* data);
 	//对题进行二值化处理
 	static void VolumeThresholding(vtkImageData* data,double minV,double maxV,
 									 vtkImageData* resData,bool saveData=true);
 	//2d转3d点--到物体表面
 	static bool GetPos3DBy2D_1(vtkRenderer* render,int* pos,double pos3d[3]);
+	//3d点转2d点
+	static bool GetPos2DBy3D(vtkRenderer* render,double pos3d[3],int pos2d[2]);
 	//创建点接口---点集
 	static void CreatePointActor(vtkPoints* points,vtkActor* pActor,double color[3],
 							float pSize=3,double opacity=0.2);
@@ -42,7 +50,7 @@ public:
 	static void CreateClipFrustum(vtkRenderer* renderer,const char *fileName);
 	//显示一系列dicom图像
 	static void ShowSeriesDicom(vtkDICOMImageReader* reader);
-	//三维体区域生产
+	//三维体区域生长
 	static void VolumeSeedGrowth(int startDim[3],vtkImageData* imagedata,
 								int threshold=50);
 };

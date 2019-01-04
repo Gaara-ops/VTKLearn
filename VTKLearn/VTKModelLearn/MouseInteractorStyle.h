@@ -1,7 +1,7 @@
 #ifndef MOUSEINTERACTORSTYLE_H
 #define MOUSEINTERACTORSTYLE_H
 #include "../Globe/GlobeInclude.h"
-#include "myfunc.h"
+#include "../Globe/myfunc.h"
 #include "volumeinfo.h"
 class MouseInteractorStyle : public vtkInteractorStyleTrackballCamera{
 public:
@@ -13,7 +13,7 @@ public:
 	VolumeInfo *seedUpdate = NULL;
 	//鼠标按下事件
 	virtual void OnLeftButtonDown(){
-		//屏幕坐标
+		/*屏幕坐标
 		int* pos = this->GetInteractor()->GetEventPosition();
 		lastClickRes = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,lastPos);
 		if(lastClickRes){
@@ -23,7 +23,7 @@ public:
 			if(lastClickRes){
 				seedUpdate->initSeedInfo(lastPos);
 			}
-		}
+		}*/
 		vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 };

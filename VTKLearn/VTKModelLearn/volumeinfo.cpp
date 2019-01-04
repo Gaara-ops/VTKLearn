@@ -1,7 +1,7 @@
 #include "volumeinfo.h"
 #include "ui_volumeinfo.h"
 #include "../Globe/GlobeInclude.h"
-#include "myfunc.h"
+#include "../Globe/myfunc.h"
 
 VolumeInfo::VolumeInfo(QWidget *parent) :
     QDialog(parent),

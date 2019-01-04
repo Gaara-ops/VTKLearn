@@ -1,8 +1,165 @@
 #include "myfunc.h"
 
-#include "MyDiocmInteractorStyleImage.h"
+//#include "MyDiocmInteractorStyleImage.h"
 MyFunc::MyFunc()
 {
+}
+
+bool MyFunc::InterpolateImagedata(vtkImageData *oridata,
+								  vtkImageData *interpolatedata,
+								  int interpolatetype)
+{
+	int dim[3];
+	double spacing[3];
+	oridata->GetDimensions(dim);
+	oridata->GetSpacing(spacing);
+	int type = 2;
+	if(interpolatetype == 0){
+		if(dim[0] != dim [1]){
+			qDebug() << "dim[0] != dim [1]";
+			return 0;
+		}
+		if(dim[0] == dim [2]){
+			qDebug() << "dim[0] == dim [2]";
+			return 0;
+		}
+		if(dim[0] < dim[2]){
+			type = 0;
+		}
+	}else if(interpolatetype == 1){
+		if(spacing[0] != spacing [1]){
+			qDebug() << "spacing[0] != spacing [1]";
+			return 0;
+		}
+		if(spacing[0] == spacing [2]){
+			qDebug() << "spacing[0] == spacing [2]";
+			return 0;
+		}
+		if(spacing[0] > spacing[2]){
+			type = 0;
+		}
+	}
+	if(type == 0){
+		qDebug() << "dim[0] < dim [2]";
+		return 0;
+	}
+	double realzspacing = (dim[2]-1)*spacing[2]/dim[0];
+	if(interpolatetype == 0){
+		interpolatedata->SetDimensions(dim[0],dim[0],dim[0]);
+		interpolatedata->SetSpacing(spacing[0],spacing[0],realzspacing);
+	}else if(interpolatetype == 1){
+		realzspacing = spacing[0];
+		int realDimz = (dim[2]-1)*spacing[2]/spacing[0];
+		interpolatedata->SetDimensions(dim[0],dim[0],realDimz+1);
+		interpolatedata->SetSpacing(spacing[0],spacing[0],spacing[0]);
+	}
+	interpolatedata->AllocateScalars(VTK_SHORT,1);
+
+	short *ptr = static_cast<short*>(interpolatedata->GetScalarPointer());
+	double tmpzTest = 0;
+	int tmprealDim = 0;
+	for(int i = 0;i<dim[0];i++){
+		for(int j = 0;j<dim[1];j++){
+			for(int k = 0;k<dim[2]-1;k++){
+				if(tmpzTest > spacing[2]){
+					tmpzTest = tmpzTest-spacing[2];
+				}
+				short* ptr1 = static_cast<short*>(oridata->GetScalarPointer(
+							i,j,k));
+				short* ptr2 = static_cast<short*>(oridata->GetScalarPointer(
+							i,j,k+1));
+				short tmpdistance = (*ptr2)-(*ptr1);
+				while(tmpzTest <= spacing[2]){
+					int tmpindx = tmprealDim*dim[0]*dim[1]+j*dim[0]+i;
+					ptr[tmpindx] = (*ptr1)+(tmpzTest/spacing[2])*tmpdistance;
+					tmprealDim++;
+					tmpzTest = tmpzTest+realzspacing;
+				}
+			}
+			tmprealDim = 0;
+		}
+	}
+	interpolatedata->Modified();
+	qDebug() << "interpolate end";
+}
+
+bool MyFunc::CreateImageDataXYZSlice(vtkImageData *data)
+{
+	QString xslicepath="./xslice/",yslicepath="./yslice/",zslicepath="./zslice/";
+	QDir tempDir;
+	if(!tempDir.exists(xslicepath)){
+		tempDir.mkpath(xslicepath);
+	}
+	if(!tempDir.exists(yslicepath)){
+		tempDir.mkpath(yslicepath);
+	}
+	if(!tempDir.exists(zslicepath)){
+		tempDir.mkpath(zslicepath);
+	}
+	int dim[3];
+	data->GetDimensions(dim);
+	int width=dim[0],height=dim[1];
+	double range[2];
+	data->GetScalarRange(range);
+	for(int z = 0;z<dim[2];z++){
+		QImage image( width, height, QImage::Format_RGB32 );
+		QRgb *rgbPtr =
+		  reinterpret_cast<QRgb *>( image.bits() ) + width * ( height - 1 );
+		for ( int row = 0; row < height; row++ )
+		{
+		  for ( int col = 0; col < width; col++ )
+		  {
+			  short *ptr0 = static_cast<short*>(data->GetScalarPointer(
+							  col,row,z));
+			  int realv = (*ptr0-range[0])/(range[1]-range[0])*255;
+			*( rgbPtr++ ) = QColor( realv, realv, realv).rgb();
+		  }
+		  rgbPtr -= width * 2;
+		}
+		QString fileName = zslicepath + QString::number(z) + ".png";
+		image.save(fileName);
+	}
+	qDebug() << "write z end";
+	width=dim[0],height=dim[2];
+	for(int y = 0;y<dim[1];y++){
+		QImage image( width, height, QImage::Format_RGB32 );
+		QRgb *rgbPtr =
+		  reinterpret_cast<QRgb *>( image.bits() ) + width * ( height - 1 );
+		for ( int row = 0; row < height; row++ )
+		{
+		  for ( int col = 0; col < width; col++ )
+		  {
+			  short *ptr0 = static_cast<short*>(data->GetScalarPointer(
+							  col,y,row));
+			  int realv = (*ptr0-range[0])/(range[1]-range[0])*255;
+			*( rgbPtr++ ) = QColor( realv, realv, realv).rgb();
+		  }
+		  rgbPtr -= width * 2;
+		}
+		QString fileName = yslicepath + QString::number(y) + ".png";
+		image.save(fileName);
+	}
+	qDebug() << "write y end";
+	width=dim[1],height=dim[2];
+	for(int x = 0;x<dim[0];x++){
+		QImage image( width, height, QImage::Format_RGB32 );
+		QRgb *rgbPtr =
+		  reinterpret_cast<QRgb *>( image.bits() ) + width * ( height - 1 );
+		for ( int row = 0; row < height; row++ )
+		{
+		  for ( int col = 0; col < width; col++ )
+		  {
+			  short *ptr0 = static_cast<short*>(data->GetScalarPointer(
+							  x,col,row));
+			  int realv = (*ptr0-range[0])/(range[1]-range[0])*255;
+			*( rgbPtr++ ) = QColor( realv, realv, realv).rgb();
+		  }
+		  rgbPtr -= width * 2;
+		}
+		QString fileName = xslicepath + QString::number(x) + ".png";
+		image.save(fileName);
+	}
+	qDebug() << "write x end";
 }
 
 void MyFunc::VolumeThresholding(vtkImageData *data, double minV,
@@ -45,6 +202,15 @@ bool MyFunc::GetPos3DBy2D_1(vtkRenderer *render, int *pos, double pos3d[])
 		return false;
 	}
 	return true;
+}
+
+bool MyFunc::GetPos2DBy3D(vtkRenderer *render, double pos3d[], int pos2d[])
+{
+	render->SetWorldPoint(pos3d[0],pos3d[1],pos3d[2],1);
+	render->WorldToDisplay();
+	double *displayCoord = render->GetDisplayPoint();
+	pos2d[0] = (int)displayCoord[0];
+	pos2d[1] = (int)displayCoord[1];
 }
 
 void MyFunc::CreatePointActor(vtkPoints *points, vtkActor *pActor,
@@ -232,13 +398,12 @@ void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
 	skinExtractor->SetComputeGradients(0);
 	skinExtractor->SetComputeNormals(1);
 	skinExtractor->SetComputeScalars(0);
-	/*
-	//平滑处理
+	/*平滑处理
 	vtkSmartPointer<vtkSmoothPolyDataFilter> smoother2 =
 	  vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
 	smoother2->SetInputConnection(skinExtractor->GetOutputPort());
-	smoother2->Update();
-	//设置迭代次数，角度等其他参数
+	smoother2->Update();*/
+	/*设置迭代次数，角度等其他参数
 	vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
 	  vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
 	smoother->SetInputConnection(skinExtractor->GetOutputPort());
@@ -290,11 +455,17 @@ void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
 		skin->GetProperty()->SetDiffuseColor(color);
 		skin->GetProperty()->SetOpacity(ocapity);
 	}
-	/*skin->GetProperty()->SetDiffuseColor(g_colors->GetColor3d("SkinColor").GetData());
-	skin->GetProperty()->SetSpecular(.2);
-	skin->GetProperty()->SetSpecularPower(20);
-	skin->GetProperty()->EdgeVisibilityOn();
-	skin->GetProperty()->SetInterpolationToFlat();*/
+//	skin->GetProperty()->SetLighting(1);
+	skin->GetProperty()->SetShading(1);
+	skin->GetProperty()->SetDiffuse(0.8);
+	skin->GetProperty()->SetAmbient(0.2);
+	skin->GetProperty()->SetSpecular(0.2);
+//	skin->GetProperty()->SetDiffuseColor(1,1,1);
+//	skin->GetProperty()->SetAmbientColor(1,1,1);
+//	skin->GetProperty()->SetSpecularColor(1,1,1);
+//	skin->GetProperty()->SetSpecularPower(10);
+//	skin->GetProperty()->EdgeVisibilityOn();
+	skin->GetProperty()->SetInterpolationToPhong();
 	render->AddActor(skin);
 }
 
@@ -493,7 +664,7 @@ void MyFunc::CreateClipFrustum(vtkRenderer *renderer, const char *fileName)
 void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 {
 	// Visualize
-	vtkSmartPointer<vtkImageViewer2> imageViewer =
+	/*vtkSmartPointer<vtkImageViewer2> imageViewer =
 	   vtkSmartPointer<vtkImageViewer2>::New();
 	imageViewer->SetInputData(reader->GetOutput());
 	int dim[3];
@@ -536,7 +707,7 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 	imageViewer->Render();
 
 	imageViewer->GetRenderer()->ResetCamera();
-	vtkCamera* camera = imageViewer->GetRenderer()->GetActiveCamera();
+	/*vtkCamera* camera = imageViewer->GetRenderer()->GetActiveCamera();
 	double dataCenterPos[3]={(dim[0]-1)*spacing[0]/2,
 							 (dim[1]-1)*spacing[1]/2,
 							 (dim[2]-1)*spacing[2]/2};
@@ -547,9 +718,9 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 	camera->SetViewUp(viewup);
 	camera->SetParallelScale(dataCenterPos[1]);
 	camera->SetClippingRange(0,10000);
-	camera->Modified();
-	imageViewer->Render();
-	renderWindowInteractor->Start();
+	camera->Modified();*/
+	/*imageViewer->Render();
+	renderWindowInteractor->Start();*/
 }
 
 void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,

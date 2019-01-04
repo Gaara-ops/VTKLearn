@@ -2,7 +2,8 @@
 #define INTERACTORTEST_H
 
 #include "../Globe/GlobeInclude.h"
-#include "myfunc.h"
+#include "../Globe/myfunc.h"
+#include<QLabel>
 
 class MouseInteractorStyleTest : public vtkInteractorStyleTrackballCamera{
 public:
@@ -21,6 +22,125 @@ public:
     vtkPolygon* m_pNormalPlanePolygon = vtkPolygon::New();//判断点是否在多边形内
     int imagedim[3];double imagespaceing[3];double centerPos[3];//体相关信息
 
+	///点击位置三视图显示
+	vtkImageViewer2* xoyViewer = vtkImageViewer2::New();//2
+	vtkImageViewer2* xozViewer = vtkImageViewer2::New();//1
+	vtkImageViewer2* yozViewer = vtkImageViewer2::New();//0
+	bool initVierer = true;
+	bool updateVierer = false;
+	vtkImageData* oriImageData;
+	vtkImageData* interpolateImageData = vtkImageData::New();
+	double cubeLength = 100;
+	int DimCenter[3] = {0};
+	int ROIBound[6] = {0};
+
+	int testnum = 10;
+	QLabel *labelAAA = new QLabel;
+	QLabel *labelBBB = new QLabel;
+	QLabel *labelCCC = new QLabel;
+
+	bool DimPosIsRight(int dim[3]){
+		int dimxlen = cubeLength/imagespaceing[0];
+		int dimylen = cubeLength/imagespaceing[0];
+		int dimzlen = cubeLength/imagespaceing[0];
+		int dimxbegin = dim[0]-dimxlen/2;
+		int dimxend = dim[0]+dimxlen/2;
+		int dimybegin = dim[1]-dimylen/2;
+		int dimyend = dim[1]+dimylen/2;
+		int dimzbegin = dim[2]-dimzlen/2;
+		int dimzend = dim[2]+dimzlen/2;
+		qDebug() << dimxbegin << dimxend <<
+					dimybegin << dimyend <<
+					dimzbegin << dimzend;
+		if(dimxbegin<0 || dimxend>=imagedim[0] ||
+				dimybegin<0 || dimyend>=imagedim[1] ||
+				dimzbegin<0 || dimzend>=(imagedim[2]*imagespaceing[2]/imagespaceing[0])){
+			qDebug() << "out range";
+			return false;
+		}
+		DimCenter[0] = dim[0];
+		DimCenter[1] = dim[1];
+		DimCenter[2] = dim[2];
+		ROIBound[0]=dimxbegin;ROIBound[1]=dimxend;
+		ROIBound[2]=dimybegin;ROIBound[3]=dimyend;
+		ROIBound[4]=dimzbegin;ROIBound[5]=dimzend;
+		return true;
+	}
+	void createImageLabel(int type){
+		int width=512,height=512;
+		int unchangedim = 0;
+		int width11=0,height11=0;
+		if(type == 0){
+			width = ROIBound[1]-ROIBound[0];
+			height = ROIBound[3]-ROIBound[2];
+			unchangedim = DimCenter[2];
+			width11 = ROIBound[0];
+			height11 = ROIBound[2];
+		}else if(type == 1){
+			width = ROIBound[1]-ROIBound[0];
+			height = ROIBound[5]-ROIBound[4];
+			unchangedim = DimCenter[1];
+			width11 = ROIBound[0];
+			height11 = ROIBound[4];
+		}else if(type == 2){
+			width = ROIBound[3]-ROIBound[2];
+			height = ROIBound[5]-ROIBound[4];
+			unchangedim = DimCenter[0];
+			width11 = ROIBound[2];
+			height11 = ROIBound[4];
+		}
+		qDebug() << width << height;
+		double range[2];
+		interpolateImageData->GetScalarRange(range);
+		QImage image( width, height, QImage::Format_RGB32 );
+		QRgb *rgbPtr =
+		  reinterpret_cast<QRgb *>( image.bits() ) + width * ( height - 1 );
+		for ( int row = 0; row < height; row++ )
+		{
+		  for ( int col = 0; col < width; col++ )
+		  {
+			  short *ptr0 = NULL;
+			  if(type==0){
+				  ptr0 = static_cast<short*>(interpolateImageData->GetScalarPointer(
+							  col+width11,row+height11,unchangedim));
+			  }else if(type == 1){
+				  ptr0 = static_cast<short*>(interpolateImageData->GetScalarPointer(
+							  col+width11,unchangedim,row+height11));
+			  }else if(type == 2){
+				  ptr0 = static_cast<short*>(interpolateImageData->GetScalarPointer(
+							  unchangedim,col+width11,row+height11));
+			  }
+			  int realv = (*ptr0-range[0])/(range[1]-range[0])*255;
+			*( rgbPtr++ ) = QColor( realv, realv, realv).rgb();
+		  }
+		  rgbPtr -= width * 2;
+		}
+		QPixmap pixmapToShow = QPixmap::fromImage( image );
+		if(type == 0){
+			labelAAA->setWindowTitle("AA");
+			labelAAA->setPixmap(pixmapToShow);
+			labelAAA->update();
+			if(!labelAAA->isVisible()){
+				labelAAA->show();
+			}
+		}else if(type == 1){
+			labelBBB->setWindowTitle("BB");
+			labelBBB->setPixmap(pixmapToShow);
+			labelBBB->update();
+			if(!labelBBB->isVisible()){
+				labelBBB->show();
+			}
+		}else if(type == 2){
+			labelCCC->setWindowTitle("CC");
+			labelCCC->setPixmap(pixmapToShow);
+			labelCCC->update();
+			if(!labelCCC->isVisible()){
+				labelCCC->show();
+			}
+		}
+	}
+	///end
+
     static MouseInteractorStyleTest *New(){
         return new MouseInteractorStyleTest;
     }
@@ -31,6 +151,26 @@ public:
         int* pos = this->GetInteractor()->GetEventPosition();
         double pos3d[3];
 		bool bPicked = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
+
+		///点击位置三视图显示
+		if(bPicked){
+			clickPoints->InsertNextPoint(pos3d[0],pos3d[1],pos3d[2]);
+			int tmpDim[3]={pos3d[0]/imagespaceing[0],
+						  pos3d[1]/imagespaceing[1],
+						  pos3d[2]/imagespaceing[0]};
+			qDebug()<<"dim:"<<tmpDim[0]<<tmpDim[1]<<tmpDim[2];
+			bool tmpres = DimPosIsRight(tmpDim);
+			if(tmpres){
+				if(updateVierer){
+					createImageLabel(0);
+					createImageLabel(1);
+					createImageLabel(2);
+					updateVierer = false;
+				}
+			}
+		}
+		///end
+
         if(drawline){
             leftBtnDown = true;
             if(bPicked){

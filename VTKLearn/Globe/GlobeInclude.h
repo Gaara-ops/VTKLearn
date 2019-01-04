@@ -84,6 +84,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkParametricSpline.h>
+#include <vtkParametricFunctionSource.h>
 
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkSmartPointer.h>
@@ -91,6 +93,7 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkSphereSource.h>
 #include <vtksys/SystemTools.hxx>
+#include <vtkShortArray.h>
 
 #include <vtkTransform.h>
 #include <vtkTextProperty.h>
@@ -130,6 +133,7 @@
 #include <QVector3D>
 #include <QFile>
 #include <QMouseEvent>
+#include <QDir>
 
 //ctk
 //#include <ctkCheckablePushButton.h>

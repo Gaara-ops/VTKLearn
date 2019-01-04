@@ -2,7 +2,7 @@
 #define MYDIOCMINTERACTORSTYLEIMAGE_H
 
 #include "../Globe/GlobeInclude.h"
-#include "myfunc.h"
+#include "../Globe/myfunc.h"
 
 // helper class to format slice status message
 class StatusMessage {
@@ -49,9 +49,11 @@ protected:
 	   double pos3d[3];
 	   MyFunc::GetPos3DBy2D_1(_ImageViewer->GetRenderer(),pos,pos3d);
 
-	   qDebug() << "pos:" << pos[0] << "," << pos[1]<<","<<_Slice;
+//	   qDebug() << "pos:" << pos[0] << "," << pos[1]<<","<<_Slice;
 	   qDebug() << "pos3d:" << pos3d[0]<< pos3d[1]<< pos3d[2];
-
+	   /*测试添加中心点*/
+	   m_strpos += QString::number(pos3d[0])+","+QString::number(pos3d[1])+
+			   ","+QString::number(pos3d[2]) + "|";
 	   if(!m_growRegion){
 			vtkInteractorStyleImage::OnLeftButtonDown();
 			return;
@@ -73,14 +75,11 @@ protected:
 	   _ImageViewer->Modified();
 	   _ImageViewer->Render();
 	   m_growRegion = false;
-	   /*测试添加中心点
-	   m_strpos += QString::number(pos3d[0])+","+QString::number(pos3d[1])+
-			   ","+QString::number(pos3d[2]) + "|";*/
 
 	   vtkInteractorStyleImage::OnLeftButtonDown();
    }
    void OnRightButtonUp(){
-		//qDebug() << m_strpos;
+		qDebug() << m_strpos;
 		vtkInteractorStyleImage::OnRightButtonUp();
    }
 

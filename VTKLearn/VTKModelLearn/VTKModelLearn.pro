@@ -21,7 +21,7 @@ SOURCES += main.cpp\
     myraycastimage.cpp \
     volumeinfo.cpp \
     ggmath.cpp \
-    myfunc.cpp
+    ../Globe/myfunc.cpp
 #    ctkwidgettest.cpp
 
 HEADERS  += mainwindow.h \
@@ -32,7 +32,7 @@ HEADERS  += mainwindow.h \
     myraycastimage.h \
     volumeinfo.h \
     ggmath.h \
-    myfunc.h \
+    ../Globe/myfunc.h \
     MyDiocmInteractorStyleImage.h \
     MouseInteractorStyle.h
 
