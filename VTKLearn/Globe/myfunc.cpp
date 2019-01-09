@@ -1,6 +1,7 @@
 #include "myfunc.h"
 
-//#include "MyDiocmInteractorStyleImage.h"
+#include "../VTKModelLearn/MyDiocmInteractorStyleImage.h"
+vtkStandardNewMacro(myVtkInteractorStyleImage);
 MyFunc::MyFunc()
 {
 }
@@ -273,6 +274,33 @@ void MyFunc::CreateLineActor(vtkPoints *points, vtkActor *lactor,
 	lactor->GetProperty()->SetColor(color);
 }
 
+void MyFunc::CreateCurveLineActor(vtkPoints *points, vtkActor *lactor,
+								  vtkParametricFunctionSource *pasource,
+								  double color[], float linewidth)
+{
+	vtkSmartPointer<vtkParametricSpline> spline =
+			vtkSmartPointer<vtkParametricSpline>::New();
+	spline->SetPoints(points);
+	int extendsize = 20;
+	if(points->GetNumberOfPoints() <=10){
+		extendsize = 30;
+	}
+	int splinenum = points->GetNumberOfPoints()*extendsize;
+	pasource->SetUResolution(splinenum);
+	pasource->SetVResolution(splinenum);
+	pasource->SetWResolution(splinenum);
+	pasource->SetParametricFunction(spline);
+	pasource->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper =
+	  vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(pasource->GetOutputPort());
+
+	lactor->SetMapper(mapper);
+	lactor->GetProperty()->SetColor(color);
+	lactor->GetProperty()->SetLineWidth(linewidth);
+}
+
 void MyFunc::ReadDicomData(vtkDICOMImageReader *reader, char *path,
 						   int dim[], double spacing[], double range[],
 						   vtkImageData *&imagedata, vtkDataArray *&scalars)
@@ -295,7 +323,8 @@ void MyFunc::ResampleData(vtkImageData *imagedata, float factor[])
 	resamle->SetAxisMagnificationFactor(1,factor[1]);//y轴抽样
 	resamle->SetAxisMagnificationFactor(2,factor[2]);//z轴抽样
 	resamle->Update();
-	imagedata = resamle->GetOutput();
+	imagedata->ReleaseData();
+	imagedata->DeepCopy(resamle->GetOutput());
 }
 
 void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
@@ -384,6 +413,10 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
 	volume->SetProperty( property );
 	volume->SetMapper( mapper );
+	/*volume->SetOrientation(0,180,0);
+	int* dim = imagedata->GetDimensions();
+	double* spacing = imagedata->GetSpacing();
+	volume->SetPosition(dim[0]*spacing[0],0,dim[2]*spacing[2]);*/
 	render->AddVolume( volume );
 }
 
@@ -465,7 +498,7 @@ void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
 //	skin->GetProperty()->SetSpecularColor(1,1,1);
 //	skin->GetProperty()->SetSpecularPower(10);
 //	skin->GetProperty()->EdgeVisibilityOn();
-	skin->GetProperty()->SetInterpolationToPhong();
+//	skin->GetProperty()->SetInterpolationToPhong();
 	render->AddActor(skin);
 }
 
@@ -664,7 +697,7 @@ void MyFunc::CreateClipFrustum(vtkRenderer *renderer, const char *fileName)
 void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 {
 	// Visualize
-	/*vtkSmartPointer<vtkImageViewer2> imageViewer =
+	vtkSmartPointer<vtkImageViewer2> imageViewer =
 	   vtkSmartPointer<vtkImageViewer2>::New();
 	imageViewer->SetInputData(reader->GetOutput());
 	int dim[3];
@@ -719,8 +752,8 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 	camera->SetParallelScale(dataCenterPos[1]);
 	camera->SetClippingRange(0,10000);
 	camera->Modified();*/
-	/*imageViewer->Render();
-	renderWindowInteractor->Start();*/
+	imageViewer->Render();
+	renderWindowInteractor->Start();
 }
 
 void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,

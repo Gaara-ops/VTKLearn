@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     myraycastimage.cpp \
     volumeinfo.cpp \
     ggmath.cpp \
-    ../Globe/myfunc.cpp
+    ../Globe/myfunc.cpp \
+    vecontrol.cpp
 #    ctkwidgettest.cpp
 
 HEADERS  += mainwindow.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     ggmath.h \
     ../Globe/myfunc.h \
     MyDiocmInteractorStyleImage.h \
-    MouseInteractorStyle.h
+    MouseInteractorStyle.h \
+    vecontrol.h
 
 FORMS    += mainwindow.ui \
     volumeinfo.ui

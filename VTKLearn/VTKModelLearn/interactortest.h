@@ -144,6 +144,14 @@ public:
     static MouseInteractorStyleTest *New(){
         return new MouseInteractorStyleTest;
     }
+	void SetImageData(vtkImageData* data){
+		oriImageData = data;
+		oriImageData->GetDimensions(imagedim);
+		oriImageData->GetSpacing(imagespaceing);
+		centerPos[0] = (imagedim[0]-1)*imagespaceing[0]/2;
+		centerPos[1] = (imagedim[1]-1)*imagespaceing[1]/2;
+		centerPos[2] = (imagedim[2]-1)*imagespaceing[2]/2;
+	}
 
     //鼠标按下事件
     virtual void OnLeftButtonDown(){

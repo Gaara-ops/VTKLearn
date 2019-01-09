@@ -72,9 +72,21 @@
      <addaction name="actionCreateThreeSlice"/>
      <addaction name="actionDrawLine"/>
      <addaction name="actionClearLine"/>
+     <addaction name="separator"/>
+     <addaction name="actionInterpolateVolume"/>
+     <addaction name="actionCreateThreeView"/>
+    </widget>
+    <widget class="QMenu" name="menuVE">
+     <property name="title">
+      <string>VE</string>
+     </property>
+     <addaction name="actionCreateCurveLine"/>
+     <addaction name="actionNextView"/>
+     <addaction name="actionPlayView"/>
     </widget>
     <addaction name="actionVolume"/>
     <addaction name="actionMIP"/>
+    <addaction name="actionSeedGrowth"/>
     <addaction name="separator"/>
     <addaction name="actionSurface"/>
     <addaction name="actionLargestRegion"/>
@@ -82,20 +94,13 @@
     <addaction name="menuThreeSlice"/>
     <addaction name="separator"/>
     <addaction name="menuClipPoly"/>
+    <addaction name="separator"/>
+    <addaction name="menuVE"/>
    </widget>
    <widget class="QMenu" name="menuImages">
     <property name="title">
      <string>Images</string>
     </property>
-    <widget class="QMenu" name="menuGetEdge">
-     <property name="title">
-      <string>GetEdge</string>
-     </property>
-     <addaction name="actionCannyEdge"/>
-    </widget>
-    <addaction name="menuGetEdge"/>
-    <addaction name="actionHistogram"/>
-    <addaction name="separator"/>
     <addaction name="actionSliceShow"/>
    </widget>
    <addaction name="menuDock"/>
@@ -111,16 +116,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionDrawline">
-   <property name="text">
-    <string>drawline</string>
-   </property>
-  </action>
-  <action name="actionClearline">
-   <property name="text">
-    <string>clearline</string>
-   </property>
-  </action>
   <action name="actionVoumeInfo">
    <property name="text">
     <string>VoumeInfo</string>
@@ -166,24 +161,44 @@
     <string>DrawLine</string>
    </property>
   </action>
+  <action name="actionSliceShow">
+   <property name="text">
+    <string>SliceShow</string>
+   </property>
+  </action>
+  <action name="actionInterpolateVolume">
+   <property name="text">
+    <string>InterpolateVolume</string>
+   </property>
+  </action>
+  <action name="actionCreateThreeView">
+   <property name="text">
+    <string>CreateThreeView</string>
+   </property>
+  </action>
   <action name="actionClearLine">
    <property name="text">
     <string>ClearLine</string>
    </property>
   </action>
-  <action name="actionCannyEdge">
+  <action name="actionSeedGrowth">
    <property name="text">
-    <string>CannyEdge</string>
+    <string>SeedGrowth</string>
    </property>
   </action>
-  <action name="actionHistogram">
+  <action name="actionCreateCurveLine">
    <property name="text">
-    <string>Histogram</string>
+    <string>CreateCurveLine</string>
    </property>
   </action>
-  <action name="actionSliceShow">
+  <action name="actionNextView">
    <property name="text">
-    <string>SliceShow</string>
+    <string>NextView</string>
+   </property>
+  </action>
+  <action name="actionPlayView">
+   <property name="text">
+    <string>PlayView</string>
    </property>
   </action>
  </widget>

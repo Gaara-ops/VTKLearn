@@ -28,6 +28,10 @@ public:
 	//创建线接口
 	static void CreateLineActor(vtkPoints* points,vtkActor* lactor,
 						 double color[3],int linewidth=1);
+	//创建曲线
+	static void CreateCurveLineActor(vtkPoints* points, vtkActor* lactor,
+									 vtkParametricFunctionSource* pasource,
+									 double color[3], float linewidth=1.0);
 	//读取dicom文件
 	static void ReadDicomData(vtkDICOMImageReader* reader,char* path,
 					   int dim[3],double spacing[3],double range[2],

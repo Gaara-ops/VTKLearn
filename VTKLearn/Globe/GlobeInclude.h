@@ -9,6 +9,7 @@
 #include <vtkAssemblyPath.h>
 
 #include <vtkBox.h>
+#include <vtkBarChartActor.h>
 
 #include <vtkCamera.h>
 #include <vtkCoordinate.h>
@@ -31,6 +32,7 @@
 
 #include <vtkGPUVolumeRayCastMapper.h>
 #include <vtkGlyph3DMapper.h>
+#include <vtkGeometryFilter.h>
 
 #include <vtkImageData.h>
 #include <vtkImageShrink3D.h>
@@ -49,6 +51,14 @@
 #include <vtkInteractorStyleImage.h>
 #include <vtkImageSliceMapper.h>
 #include <vtkImageMapToWindowLevelColors.h>
+#include <vtkImageLuminance.h>
+#include <vtkImageCast.h>
+#include <vtkImageGradient.h>
+#include <vtkImageNonMaximumSuppression.h>
+#include <vtkImageConstantPad.h>
+#include <vtkImageToStructuredPoints.h>
+#include <vtkImageMagnitude.h>
+#include <vtkImageAccumulate.h>
 
 #include <vtkLight.h>
 #include <vtkLightCollection.h>
@@ -56,6 +66,8 @@
 #include <vtkLineSource.h>
 #include <vtkLine.h>
 #include <vtkLODProp3D.h>
+#include <vtkLinkEdgels.h>
+#include <vtkLegendBoxActor.h>
 
 #include <vtkMarchingCubes.h>
 #include <vtkMetaImageReader.h>
@@ -86,6 +98,8 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
+#include <vtkProperty2D.h>
+#include <vtkPointHandleRepresentation2D.h>
 
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkSmartPointer.h>
@@ -94,10 +108,14 @@
 #include <vtkSphereSource.h>
 #include <vtksys/SystemTools.hxx>
 #include <vtkShortArray.h>
+#include <vtkSubPixelPositionEdgels.h>
+#include <vtkSeedWidget.h>
+#include <vtkSeedRepresentation.h>
 
 #include <vtkTransform.h>
 #include <vtkTextProperty.h>
 #include <vtkTextMapper.h>
+#include <vtkThreshold.h>
 
 #include <vtkVolumeProperty.h>
 #include <vtkVolume16Reader.h>
@@ -107,6 +125,7 @@
 #include <vtkWindowedSincPolyDataFilter.h>
 
 #include <QVTKWidget.h>
+
 //文件读取
 #include <vtkBYUReader.h>
 #include <vtkOBJReader.h>
@@ -122,6 +141,7 @@
 #include <math.h>
 #include <synchapi.h>
 #include <sstream>
+#include <cstdlib>
 
 //qt
 #include <QDebug>

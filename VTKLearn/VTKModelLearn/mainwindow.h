@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "MouseInteractorStyle.h"
+#include "vecontrol.h"
 class vtkRenderer;
 class vtkLight;
 class vtkDICOMImageReader;
@@ -23,15 +24,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
-	///所有测试接口
-	//测试延中心线移动
-	QVector<QVector3D> m_posVec;
-	vtkSphereSource* m_testSphere;
-	vtkParametricFunctionSource* m_testSource;
-	void testReadPoint();
-	void testCreateSphere(double center[]);
-	void testBtnResponse1();
-	///end
     //绘制之前删除render中的actor或prop
     void DeleteAllThing();
 private slots:
@@ -50,24 +42,26 @@ private slots:
     //清除所有绘制的信息
     void on_actionClear_triggered();
     //生成最大密度投影体
-    void on_actionMIP_triggered();
+	void on_actionMIP_triggered();
+	void on_actionSeedGrowth_triggered();
     //使用Frustum进行切割
 	void on_ClipFrustum_triggered();
 	//生成三维切片面
 	void on_actionCreateThreeSlice_triggered();
 	void on_actionDrawLine_triggered();
 	void on_actionClearLine_triggered();
-
-	void on_actionCannyEdge_triggered();
-
-	void on_actionHistogram_triggered();
+	void on_actionInterpolateVolume_triggered();
+	void on_actionCreateThreeView_triggered();
 	//显示一系列dicom文件，包含区域增长
 	void on_actionSliceShow_triggered();
-
+	//执行VE相关
+	void on_actionCreateCurveLine_triggered();
+	void on_actionNextView_triggered();
+	void on_actionPlayView_triggered();
 private:
     void InitInfo();
     void InitCamera();
-	void InitCameraPespective();
+	void InitCameraPespective(int dim[], double spacing[]);
 private:
     Ui::MainWindow *ui;
 	QTimer* m_timer;
@@ -83,6 +77,9 @@ private:
     vtkLight* light1;
 	//三维切片显示时,在切片上画线并绘制点集
 	MouseInteractorStyleTest* m_mouseInter;
+	//VE相关
+	VEControl* m_vecontrol;
+	bool m_veactive;
 };
 
 #endif // MAINWINDOW_H
