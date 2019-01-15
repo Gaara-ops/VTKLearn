@@ -150,7 +150,8 @@ public:
 		oriImageData->GetSpacing(imagespaceing);
 		centerPos[0] = (imagedim[0]-1)*imagespaceing[0]/2;
 		centerPos[1] = (imagedim[1]-1)*imagespaceing[1]/2;
-		centerPos[2] = (imagedim[2]-1)*imagespaceing[2]/2;
+//		centerPos[2] = (imagedim[2]-1)*imagespaceing[2]/2;
+		centerPos[2] = (imagedim[2]/2 + 20)*imagespaceing[2];
 	}
 
     //鼠标按下事件
@@ -161,7 +162,7 @@ public:
 		bool bPicked = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,pos3d);
 
 		///点击位置三视图显示
-		if(bPicked){
+		/*if(bPicked){
 			clickPoints->InsertNextPoint(pos3d[0],pos3d[1],pos3d[2]);
 			int tmpDim[3]={pos3d[0]/imagespaceing[0],
 						  pos3d[1]/imagespaceing[1],
@@ -176,7 +177,7 @@ public:
 					updateVierer = false;
 				}
 			}
-		}
+		}*/
 		///end
 
         if(drawline){
@@ -320,27 +321,27 @@ public:
         double tempP2O[3];
         //轴位图
         if(planeIsShow[2]){
-            int dimz = imagedim[2]/2;
+			int dimz = imagedim[2]/2 + 20;
             for(int i=0; i<imagedim[0]; i++){
                 for(int j=0; j<imagedim[1]; j++){
                     double tempPos222[3] = {i*imagespaceing[0],j*imagespaceing[1],dimz*imagespaceing[2]};
                     tempP2O[0] = i*imagespaceing[0]-centerPos[0];
                     tempP2O[1] = j*imagespaceing[1]-centerPos[1];
-                    tempP2O[2] = dimz*imagespaceing[2]-centerPos[2];
+					tempP2O[2] = 0;
 
                     double crossvalue1,crossvalue2;
                     int tempXOZ1 = 1;
                     int tempXOZ2 = 1;
-                    if(planeIsShow[1]==1){
+					if(planeIsShow[1]==1){//判断是否被XOZ面遮挡
 						tempXOZ1 = MyFunc::GetCrossVec(tempP2O,noramlXOZ,crossvalue1);
 						tempXOZ2 = MyFunc::GetCrossVec(direct,noramlXOZ,crossvalue2);
                     }
-                    if(tempXOZ1*tempXOZ2>0){
+					if(tempXOZ1*tempXOZ2>0){//点前面无遮挡
                         bool isshow = true;
-                        if(planeIsShow[0]==1){
+						if(planeIsShow[0]==1){//判断是否被YOZ面遮挡
                             isshow = PointInPlane(tempP2O,noramlYOZ,direct,tempPos222,boxYOZ,1);
                         }
-                        if(isshow){
+						if(isshow){//判断点是否在绘制的多边形内
                             double tempPlacePos[3];
                             PointProject(tempPos222,tempPlacePos);
                             bool isin = m_pNormalPlanePolygon->PointInPolygon(tempPlacePos,numPts,pts,bounds,direct);
@@ -353,11 +354,12 @@ public:
                         bool isshow = true;
                         double intersectPos[3];
                         double tempk = -(crossvalue1/crossvalue2);
+						//求点与XOZ的交点，判断是否在XOZ的包围盒内
                         GetIntersectPoint(tempPos222,direct,tempk,intersectPos);
                         isshow = IsShowPos(intersectPos,boxXOZ,2);
-                        if(isshow){
+						if(isshow){//判断是否被YOZ面遮挡
                             isshow = PointInPlane(tempP2O,noramlYOZ,direct,tempPos222,boxYOZ,1);
-                            if(isshow){
+							if(isshow){//判断点是否在绘制的多边形内
                                 double tempPlacePos[3];
                                 PointProject(tempPos222,tempPlacePos);
                                 bool isin = m_pNormalPlanePolygon->PointInPolygon(tempPlacePos,numPts,pts,bounds,direct);
@@ -379,7 +381,7 @@ public:
                 for(int j=0; j<imagedim[2]; j++){
                     double tempPos222[3] = {i*imagespaceing[0],dimy*imagespaceing[1],j*imagespaceing[2]};
                     tempP2O[0] = i*imagespaceing[0]-centerPos[0];
-                    tempP2O[1] = dimy*imagespaceing[1]-centerPos[1];
+					tempP2O[1] = 0;
                     tempP2O[2] = j*imagespaceing[2]-centerPos[2];
                     double crossvalue1,crossvalue2;
                     int tempXOY1 = 1;
@@ -432,7 +434,7 @@ public:
             for(int i=0; i<imagedim[1]; i++){
                 for(int j=0; j<imagedim[2]; j++){
                     double tempPos222[3] = {dimx*imagespaceing[0],i*imagespaceing[1],j*imagespaceing[2]};
-                    tempP2O[0] = dimx*imagespaceing[0]-centerPos[0];
+					tempP2O[0] = 0;
                     tempP2O[1] = i*imagespaceing[1]-centerPos[1];
                     tempP2O[2] = j*imagespaceing[2]-centerPos[2];
                     double crossvalue1,crossvalue2;
@@ -486,9 +488,9 @@ public:
         double crossvalue1,crossvalue2;
 		int temp1 = MyFunc::GetCrossVec(P2ODirect,normal,crossvalue1);
 		int temp2 = MyFunc::GetCrossVec(direct,normal,crossvalue2);
-        if(temp1*temp2 > 0){
+		if(temp1*temp2 > 0){//无遮挡
             return true;
-        }else{
+		}else{//判断是否在遮挡的包围盒外
             bool isshow = true;
             double intersectPos[3];
             double tempk = -(crossvalue1/crossvalue2);

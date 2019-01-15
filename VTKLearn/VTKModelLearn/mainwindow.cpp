@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //读取文件
 	char *dirname = "E:/workspace/DICOM/133ceng";
+//	char *dirname = "E:/workspace/DICOM/allbody";
     dicomReader = vtkDICOMImageReader::New();
     vtkDataArray* scalarsArr = NULL;
     double scalarRange[2];
@@ -86,6 +87,7 @@ void MainWindow::InitInfo()
 	renderer = vtkRenderer::New();
 	m_volumeStyle = MouseInteractorStyle::New();
 	m_volumeStyle->SetDefaultRenderer(renderer);
+	m_volumeStyle->imagedata = m_imageData;
 }
 
 void MainWindow::InitCamera()
@@ -210,6 +212,13 @@ void MainWindow::on_pushButton_clicked()
 //	renderer->AddLight(light1);
 //	renderer->GetActiveCamera()->Dolly(0.5);
 //	ui->qvtkWidget->GetRenderWindow()->Render();
+	QString bili = ui->lineEdit->text();
+	QStringList list =bili.trimmed().split(",");
+	double xmax = list.at(0).toDouble();
+	double ymax = list.at(1).toDouble();
+	renderer->SetViewport(0,0,xmax,ymax);
+	renderer->ResetCamera();
+	ui->qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::on_ClipFrustum_triggered()
@@ -245,7 +254,7 @@ void MainWindow::on_actionCreateThreeSlice_triggered()
 	extractVOI->SetVOI(m_dim[0]/4,3*m_dim[0]/4,m_dim[1]/4,3*m_dim[1]/4,
 			m_dim[2]/4,3*m_dim[2]/4);
 	extractVOI->Update();*/
-	MyFunc::CreateVolume(m_imageData,0,1,0,renderer);
+//	MyFunc::CreateVolume(m_imageData,0,1,0,renderer);
 
 	m_mouseInter = MouseInteractorStyleTest::New();
 	m_mouseInter->SetImageData(m_imageData);

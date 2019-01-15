@@ -19,47 +19,6 @@ VTK_MODULE_INIT(vtkRenderingContextOpenGL2)
 #include <vtkSeedWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
-class vtkSeedCallback : public vtkCommand
-{
-  public:
-	static vtkSeedCallback *New()
-	{
-	  return new vtkSeedCallback;
-	}
-
-	vtkSeedCallback() {}
-
-	virtual void Execute(vtkObject*, unsigned long event, void *calldata)
-	{
-	  if(event == vtkCommand::PlacePointEvent)
-	  {
-		std::cout << "Point placed, total of: "
-			<< this->SeedRepresentation->GetNumberOfSeeds() << std::endl;
-	  }
-	  if(event == vtkCommand::InteractionEvent)
-	  {
-		if(calldata)
-		{
-		  std::cout << "Interacting with seed : "
-			  << *(static_cast< int * >(calldata)) << std::endl;
-		}
-	  }
-
-
-	  std::cout << "List of seeds (Display coordinates):" << std::endl;
-	  for(vtkIdType i = 0; i < this->SeedRepresentation->GetNumberOfSeeds(); i++)
-	  {
-		double pos[3];
-		this->SeedRepresentation->GetSeedDisplayPosition(i, pos);
-		std::cout << "(" << pos[0] << " " << pos[1] << " " << pos[2] << ")" << std::endl;
-	  }
-
-	}
-
-	void SetRepresentation(vtkSmartPointer<vtkSeedRepresentation> rep) {this->SeedRepresentation = rep;}
-  private:
-	vtkSmartPointer<vtkSeedRepresentation> SeedRepresentation;
-};
 
 int main(int argc, char *argv[])
 {
@@ -83,40 +42,24 @@ int main(int argc, char *argv[])
 	  vtkSmartPointer<vtkRenderer>::New();
 	vtkSmartPointer<vtkRenderWindow> renderWindow =
 	  vtkSmartPointer<vtkRenderWindow>::New();
+	renderWindow->SetSize(1650,940);
 	renderWindow->AddRenderer(renderer);
 	renderer->AddActor(actor);
 
+	renderer->SetViewport(0,0,540.0f/1650,889.0f/940);
+	renderer->SetBackground(1,0,0);
 	// An interactor
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
 	  vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	renderWindowInteractor->SetRenderWindow(renderWindow);
-
-	// Create the representation
-	vtkSmartPointer<vtkPointHandleRepresentation2D> handle =
-	  vtkSmartPointer<vtkPointHandleRepresentation2D>::New();
-	handle->GetProperty()->SetColor(1,0,0);
-	vtkSmartPointer<vtkSeedRepresentation> rep =
-	  vtkSmartPointer<vtkSeedRepresentation>::New();
-	rep->SetHandleRepresentation(handle);
-
-	// Seed widget
-	vtkSmartPointer<vtkSeedWidget> seedWidget =
-	  vtkSmartPointer<vtkSeedWidget>::New();
-	seedWidget->SetInteractor(renderWindowInteractor);
-	seedWidget->SetRepresentation(rep);
-
-	vtkSmartPointer<vtkSeedCallback> seedCallback =
-	  vtkSmartPointer<vtkSeedCallback>::New();
-	seedCallback->SetRepresentation(rep);
-	seedWidget->AddObserver(vtkCommand::PlacePointEvent,seedCallback);
-	seedWidget->AddObserver(vtkCommand::InteractionEvent,seedCallback);
+	vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
+	  vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	renderWindowInteractor->SetInteractorStyle(style);
 
 	renderWindow->Render();
 
 	renderWindowInteractor->Initialize();
 	renderWindow->Render();
-	seedWidget->On();
-
 	renderWindowInteractor->Start();
 
 	return a.exec();

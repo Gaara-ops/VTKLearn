@@ -238,12 +238,12 @@ int MyFunc::GetCrossVec(double vec1[], double vec2[], double &crossvalue)
 {
 	double temp = vec1[0]*vec2[0]+vec1[1]*vec2[1]+vec1[2]*vec2[2];
 	crossvalue = temp;
-	if(temp > 0){
+	if(temp > 0){//夹角小于90
 		return 1;
-	}else if(temp < 0){
+	}else if(temp < 0){//夹角大于90
 		return -1;
 	}else{
-		return 0;
+		return 0;//垂直
 	}
 }
 
@@ -400,9 +400,9 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	}
 	if(blendmode == 1){
 		colorFun->AddRGBPoint( 0, 0, 0, 0);
-		colorFun->AddRGBPoint( 1023, 0.5, 0.5, 0.5);
-		colorFun->AddRGBPoint( 1024, 1, 0, 0);
-		colorFun->AddRGBPoint( 1025, 0.5, 0.5, 0.5 );
+//		colorFun->AddRGBPoint( 1023, 0.5, 0.5, 0.5);
+//		colorFun->AddRGBPoint( 1024, 1, 0, 0);
+//		colorFun->AddRGBPoint( 1025, 0.5, 0.5, 0.5 );
 		colorFun->AddRGBPoint( 2048, 1, 1, 1 );
 		opacityFun->AddPoint(0, 0 );
 		opacityFun->AddPoint(2048, 1 );
@@ -417,7 +417,7 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	int* dim = imagedata->GetDimensions();
 	double* spacing = imagedata->GetSpacing();
 	volume->SetPosition(dim[0]*spacing[0],0,dim[2]*spacing[2]);*/
-	render->AddVolume( volume );
+	render->AddActor( volume );
 }
 
 void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
@@ -505,7 +505,7 @@ void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
 void MyFunc::CreateThreeSlice(int dim[], vtkRenderer *render,
 							  vtkDICOMImageReader *reader)
 {
-	int dimx=dim[0]/2,dimy=dim[1]/2,dimz=dim[2]/2;
+	int dimx=dim[0]/2,dimy=dim[1]/2,dimz=dim[2]/2 + 20;
 	vtkSmartPointer<vtkLookupTable> bwLut =
 	  vtkSmartPointer<vtkLookupTable>::New();
 	bwLut->SetTableRange (-2048, 2048);

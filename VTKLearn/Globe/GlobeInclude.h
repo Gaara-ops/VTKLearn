@@ -154,6 +154,7 @@
 #include <QFile>
 #include <QMouseEvent>
 #include <QDir>
+#include <QDesktopWidget>
 
 //ctk
 //#include <ctkCheckablePushButton.h>
