@@ -26,6 +26,8 @@ public:
 	~MainWindow();
     //绘制之前删除render中的actor或prop
     void DeleteAllThing();
+	void initImagePartData();
+	void SetImagePartDataValue(short ctvalue=-2048);
 private slots:
 	void slotTimeOut();
 	//测试按钮
@@ -73,6 +75,7 @@ private:
     vtkRenderer* renderer;
     vtkDICOMImageReader* dicomReader;
     vtkImageData* m_imageData;
+	vtkImageData* m_imagePartData;
     //灯光1
     vtkLight* light1;
 	//三维切片显示时,在切片上画线并绘制点集

@@ -24,6 +24,7 @@ LIBS += -L$${VTK_DIR}/lib \
         libvtkRenderingVolumeOpenGL2-7.1 \
         libvtkRenderingContext2D-7.1 \
         libvtkRenderingContextOpenGL2-7.1 \
+        libvtkRenderingLOD-7.1 \
         libvtkRenderingQt-7.1 \
         libvtkRenderingAnnotation-7.1 \
         libvtkFiltersGeneral-7.1 \

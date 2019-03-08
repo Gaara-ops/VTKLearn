@@ -11,20 +11,23 @@ public:
 	bool lastClickRes = false;
 	double lastPos[3] = {0};
 	VolumeInfo *seedUpdate = NULL;
-	vtkImageData* imagedata = NULL;
+    vtkImageData* imagedata = NULL;
 	//鼠标按下事件
 	virtual void OnLeftButtonDown(){
-		/*屏幕坐标
+        /*测试批量空间坐标转换*/
 		int* pos = this->GetInteractor()->GetEventPosition();
 		lastClickRes = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,lastPos);
 		if(lastClickRes){
 			//qDebug()<<"pos:"<<lastPos[0]<< lastPos[1]<<lastPos[2];
-		}
-		if(seedUpdate != NULL){
+            qDebug() << "true";
+        }else{
+            qDebug() << "false";
+        }
+        if(seedUpdate != NULL){
 			if(lastClickRes){
 				seedUpdate->initSeedInfo(lastPos);
 			}
-		}*/
+        }
 		/*QTime testtime;
 		testtime.start();
 

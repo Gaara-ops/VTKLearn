@@ -400,9 +400,9 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	}
 	if(blendmode == 1){
 		colorFun->AddRGBPoint( 0, 0, 0, 0);
-//		colorFun->AddRGBPoint( 1023, 0.5, 0.5, 0.5);
-//		colorFun->AddRGBPoint( 1024, 1, 0, 0);
-//		colorFun->AddRGBPoint( 1025, 0.5, 0.5, 0.5 );
+		colorFun->AddRGBPoint( 1023, 0.5, 0.5, 0.5);
+		colorFun->AddRGBPoint( 1024, 1, 0, 0);
+		colorFun->AddRGBPoint( 1025, 0.5, 0.5, 0.5 );
 		colorFun->AddRGBPoint( 2048, 1, 1, 1 );
 		opacityFun->AddPoint(0, 0 );
 		opacityFun->AddPoint(2048, 1 );
@@ -757,28 +757,37 @@ void MyFunc::ShowSeriesDicom(vtkDICOMImageReader *reader)
 }
 
 void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,
-							  int threshold)
+							  vtkImageData *resimagedata,int threshold)
 {
 	int numchangepos = 0;
 	int replaceValue = 1024;
 
 	int nScrValue=0;//生长起始点的灰度值
 	int nCurValue=0;//当前生长点的灰度值
-	/*int DIR[26][3]={{-1,-1,0}, {0,-1,0}, {1,-1,0}, {1,0,0},
-					{1,1,0}, {0,1,0}, {-1,1,0}, {-1,0,0},
-		   {0,0,1}, {-1,-1,1}, {0,-1,1}, {1,-1,1}, {1,0,1},
-					{1,1,1}, {0,1,1}, {-1,1,1}, {-1,0,1},
-	{0,0,-1}, {-1,-1,-1}, {0,-1,-1}, {1,-1,-1}, {1,0,-1},
-					{1,1,-1}, {0,1,-1}, {-1,1,-1}, {-1,0,-1}};*/
-	int DIR[6][3]={{0,-1,0}, {1,0,0}, {0,1,0},
-					{-1,0,0}, {0,0,1}, {0,0,-1}};
+	int growthDir = 10;
+	/*int DIR[26][3]={{-1,-1,0}, {0,-1,0},  {1,-1,0}, {1,0,0},
+					{1,1,0},   {0,1,0},   {-1,1,0}, {-1,0,0},{0,0,1},
+					{-1,-1,1}, {0,-1,1},  {1,-1,1}, {1,0,1},
+					{1,1,1},   {0,1,1},   {-1,1,1}, {-1,0,1},{0,0,-1},
+					{-1,-1,-1},{0,-1,-1}, {1,-1,-1},{1,0,-1},
+					{1,1,-1},  {0,1,-1},  {-1,1,-1},{-1,0,-1}};*/
+	int DIR[10][3]={{-1,-1,0}, {0,-1,0},  {1,-1,0}, {1,0,0},
+					{1,1,0},   {0,1,0},   {-1,1,0}, {-1,0,0},
+					{0,0,1},   {0,0,-1}};
+	/*int DIR[6][3]={{0,-1,0}, {1,0,0}, {0,1,0},
+				   {-1,0,0}, {0,0,1}, {0,0,-1}};*/
 	QVector<QVector3D> vcGrowpt;//生长点的堆栈
+	vcGrowpt.clear();
 	//将初始生长点压入堆栈
 	vcGrowpt.push_back(QVector3D(startDim[0],startDim[1],startDim[2]));
 	//标记初始生长点
 	short *ptr0 = static_cast<short*>(imagedata->GetScalarPointer(
 									startDim[0],startDim[1],startDim[2]));
-	nScrValue = (int)(*ptr0);
+
+	short *resptr = static_cast<short*>(resimagedata->GetScalarPointer(
+									startDim[0],startDim[1],startDim[2]));
+	*resptr = *ptr0;
+
 	*ptr0 = replaceValue;
 	qDebug() << "nScrValue:"<<nScrValue;
 	double spacing[3];
@@ -790,7 +799,7 @@ void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,
 	{
 		QVector3D curpt=vcGrowpt.back();//在堆栈中取出一个生长点
 		vcGrowpt.pop_back();
-		for(int i=0;i<6;i++)
+		for(int i=0;i<growthDir;i++)
 		{
 			ptGrowing.setX(curpt.x()+DIR[i][0]);
 			ptGrowing.setY(curpt.y()+DIR[i][1]);
@@ -800,6 +809,10 @@ void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,
 					(ptGrowing.y()>=dim[1]) || ptGrowing.z()>=dim[2]){
 				continue;
 			}
+			short* nowValue = static_cast<short*>(resimagedata->GetScalarPointer(
+												curpt.x(),curpt.y(),curpt.z()));
+			nScrValue = *nowValue;
+
 			short *ptr = static_cast<short*>(imagedata->GetScalarPointer(
 								ptGrowing.x(),ptGrowing.y(),ptGrowing.z()));
 			nCurValue=*ptr;
@@ -807,6 +820,10 @@ void MyFunc::VolumeSeedGrowth(int startDim[], vtkImageData *imagedata,
 			{
 				if(abs(nCurValue-nScrValue)<=threshold)
 				{
+					resptr = static_cast<short*>(resimagedata->GetScalarPointer(
+								ptGrowing.x(),ptGrowing.y(),ptGrowing.z()));
+					*resptr = *ptr;
+
 					numchangepos++;
 					*ptr = replaceValue;
 					vcGrowpt.push_back(ptGrowing);

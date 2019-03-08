@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->resize(800,600);
 	m_volumeInfo = NULL;
 
-    //读取文件
-	char *dirname = "E:/workspace/DICOM/133ceng";
+    //读取文件"H:/niu/20190301/YANGYUEMING";
+    char *dirname = "E:/workspace/DICOM/133ceng";
 //	char *dirname = "E:/workspace/DICOM/allbody";
     dicomReader = vtkDICOMImageReader::New();
     vtkDataArray* scalarsArr = NULL;
@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
 						  scalarRange,m_imageData,scalarsArr);
     qDebug() << "dim:" << m_dim[0]<<m_dim[1]<<m_dim[2];
 	qDebug() << "m_spacing:" << m_spacing[0]<<m_spacing[1]<<m_spacing[2];
+	initImagePartData();
 	//初始化一些信息
     InitInfo();
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
@@ -41,6 +42,7 @@ MainWindow::~MainWindow()
     dicomReader->Delete();
     light1->Delete();
 	renderer->Delete();
+	m_imagePartData->Delete();
 }
 
 void MainWindow::DeleteAllThing()
@@ -66,6 +68,28 @@ void MainWindow::DeleteAllThing()
 
     int numActor2Ds = renderer->GetActors2D()->GetNumberOfItems();
 	qDebug() << "numActor2Ds: "<< numActor2Ds;
+}
+
+void MainWindow::initImagePartData()
+{
+	m_imagePartData = vtkImageData::New();
+	m_imagePartData->SetDimensions(m_dim);
+	m_imagePartData->SetSpacing(m_spacing);
+	m_imagePartData->AllocateScalars(VTK_SHORT,1);
+	SetImagePartDataValue();
+}
+
+void MainWindow::SetImagePartDataValue(short ctvalue)
+{
+	short *ptr = static_cast<short*>(m_imagePartData->GetScalarPointer());
+	for(int k=0;k<m_dim[2];k++){
+		for(int j=0;j<m_dim[1];j++){
+			for(int i=0;i<m_dim[0];i++){
+				ptr[k*m_dim[1]*m_dim[0]+j*m_dim[0]+i] = ctvalue;
+			}
+		}
+	}
+	m_imagePartData->Modified();
 }
 
 void MainWindow::slotTimeOut()
@@ -99,7 +123,7 @@ void MainWindow::InitCamera()
                              (m_dim[2]-1)*m_spacing[2]/2};
     double viewup[3] = {0,0,-1};
     camera->SetParallelProjection(1);
-    camera->SetPosition(dataCenterPos[0],dataCenterPos[1]+1000,dataCenterPos[2]);
+	camera->SetPosition(dataCenterPos[0],dataCenterPos[1]+200,dataCenterPos[2]);
     camera->SetFocalPoint(dataCenterPos[0],dataCenterPos[1],dataCenterPos[2]);
     camera->SetViewUp(viewup);
     camera->SetParallelScale(dataCenterPos[1]+10);
@@ -165,12 +189,14 @@ void MainWindow::on_actionVolume_triggered()
 	renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
-int ctvalue=300;
+int ctvalue=-600;
 void MainWindow::on_actionSurface_triggered()
 {
     DeleteAllThing();
 	double color[3]={1,0,0};
-	MyFunc::CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true,5);
+	MyFunc::CreateSurface(m_imagePartData,ctvalue,1,color,renderer,false,5);
+//	double color2[3]={1,1,0};
+//	MyFunc::CreateSurface(m_imageData,300,1,color2,renderer,false,5);
     renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
@@ -199,26 +225,67 @@ void MainWindow::on_actionSeedGrowth_triggered()
 {
 	/*测试三维中种子增长*/
 	int dimstart1[3] = {280,284,132};//test 1
-	double tmpPos[3] = {175.438,142.456,330};
+	double tmpPos[3] = {163.77 ,207.436,17.5};//
 	int dimstart2[3] = {tmpPos[0]/m_spacing[0],tmpPos[1]/m_spacing[1],
 					   tmpPos[2]/m_spacing[2]};//test 2_600
-	MyFunc::VolumeSeedGrowth(dimstart1,m_imageData,50);
+	MyFunc::VolumeSeedGrowth(dimstart2,m_imageData,m_imagePartData,30);
 	m_imageData->Modified();
 	ui->qvtkWidget->GetRenderWindow()->Render();
 }
+
 void MainWindow::on_pushButton_clicked()
 {
-//	renderer->RemoveAllLights();
-//	renderer->AddLight(light1);
-//	renderer->GetActiveCamera()->Dolly(0.5);
-//	ui->qvtkWidget->GetRenderWindow()->Render();
-	QString bili = ui->lineEdit->text();
-	QStringList list =bili.trimmed().split(",");
-	double xmax = list.at(0).toDouble();
-	double ymax = list.at(1).toDouble();
-	renderer->SetViewport(0,0,xmax,ymax);
-	renderer->ResetCamera();
-	ui->qvtkWidget->GetRenderWindow()->Render();
+    /**
+     * 创建两个体，其中一个有透明度
+    vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper =
+        vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    mapper->SetInputData(m_imageData);
+
+    vtkSmartPointer<vtkColorTransferFunction> colorFun =
+            vtkSmartPointer<vtkColorTransferFunction>::New();
+    vtkSmartPointer<vtkPiecewiseFunction> opacityFun =
+            vtkSmartPointer<vtkPiecewiseFunction>::New();
+    vtkSmartPointer<vtkVolumeProperty> property =
+            vtkSmartPointer<vtkVolumeProperty>::New();
+    colorFun->AddRGBPoint( -3024, 0, 0, 0);
+    colorFun->AddRGBPoint( -16, 0.73, 0.25, 0.30);
+    colorFun->AddRGBPoint( 641, .90, .82, 0);
+    colorFun->AddRGBPoint( 3071, 1, 1, 0);
+    opacityFun->AddPoint(-3024, 0);
+    opacityFun->AddPoint(-16, 0);
+    opacityFun->AddPoint(641, .2);
+    opacityFun->AddPoint(3071, .1);
+    property->SetIndependentComponents(true);
+    property->SetColor( colorFun );
+    property->SetScalarOpacity( opacityFun );
+    property->SetInterpolationTypeToLinear();
+    property->ShadeOn();
+    property->SetAmbient(0.5);
+    property->SetDiffuse(0.5);
+    property->SetSpecular(0.5);
+    property->SetSpecularPower(50.0);
+
+    vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
+    volume->SetProperty( property );
+    volume->SetMapper( mapper );
+    renderer->AddActor(volume);*/
+/*
+    vtkImageData* imagedata = vtkImageData::New();
+    imagedata->DeepCopy(m_imageData);
+    imagedata->Modified();
+    for(int z=m_dim[2]/4;z<m_dim[2]*3/4;z++){
+        for(int y=0;y<m_dim[1];y++){
+            for(int x=m_dim[0]/4;x<m_dim[0]*3/4;x++){
+                short *ptr0 = static_cast<short*>(imagedata->GetScalarPointer(
+                            x,y,z));
+                *ptr0 = 0;
+            }
+        }
+    }
+    MyFunc::CreateVolume(imagedata,0,1,0,renderer);
+*/
+    //renderer->ResetCamera();
+    //ui->qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::on_ClipFrustum_triggered()

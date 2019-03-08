@@ -17,6 +17,7 @@ SOURCES += main.cpp\
         ../Globe/myfunc.cpp
 
 HEADERS  += mainwindow.h \
+            MouseInteractorStyle.h \
         ../Globe/myfunc.h
 
 FORMS    += mainwindow.ui

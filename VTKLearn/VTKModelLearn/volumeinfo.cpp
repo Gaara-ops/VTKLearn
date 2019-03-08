@@ -209,7 +209,7 @@ void VolumeInfo::on_SeedGrowthBtn_clicked()
 	if(tmplist.size() == 3){
 		int dimstart[3]= { tmplist.at(0).toInt(),
 						   tmplist.at(1).toInt(),tmplist.at(2).toInt() };
-		MyFunc::VolumeSeedGrowth(dimstart,oriImageData,threshold);
+		//MyFunc::VolumeSeedGrowth(dimstart,oriImageData,threshold);
 		qDebug() << "grow end!";
 	}
 }

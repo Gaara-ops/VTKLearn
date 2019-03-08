@@ -16,7 +16,7 @@ VTK_MODULE_INIT(vtkRenderingContextOpenGL2)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-	MainWindow m;
-	m.show();
+    MainWindow m;
+    m.show();
     return a.exec();
 }

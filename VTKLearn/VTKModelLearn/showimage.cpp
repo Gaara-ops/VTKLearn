@@ -25,7 +25,8 @@ void ShowImage::updateLabel(int width,int height,int* colorptr)
       for ( int col = 0; col < width; col++ )
       {
         // Swap the vtkImageData RGB values with an equivalent QColor
-        *( rgbPtr++ ) = QColor( colorptr[imindex],colorptr[imindex+1],colorptr[imindex+2]).rgb();
+		*( rgbPtr++ ) = QColor( colorptr[imindex],colorptr[imindex+1],
+				  colorptr[imindex+2]).rgb();
           imindex += 3;
       }
 //      rgbPtr -= width * 2;

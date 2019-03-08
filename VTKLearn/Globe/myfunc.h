@@ -56,7 +56,7 @@ public:
 	static void ShowSeriesDicom(vtkDICOMImageReader* reader);
 	//三维体区域生长
 	static void VolumeSeedGrowth(int startDim[3],vtkImageData* imagedata,
-								int threshold=50);
+								vtkImageData* resimagedata,int threshold=50);
 };
 
 #endif // MYFUNC_H
