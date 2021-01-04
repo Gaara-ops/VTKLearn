@@ -3,4 +3,5 @@ TEMPLATE = subdirs
 SUBDIRS += \
     MyVTKTest \
     VTKModelLearn \
-    FourPanelViewer
+    FourPanelViewer \
+    vtkmLearn

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "MouseInteractorStyle.h"
 #include "vecontrol.h"
+#include "polydataope.h"
 class vtkRenderer;
 class vtkLight;
 class vtkDICOMImageReader;
@@ -11,6 +12,7 @@ class vtkActor;
 class MouseInteractorStyleTest;
 class vtkPolyDataMapper;
 class vtkImageData;
+class HeartSeg;
 
 class VolumeInfo;
 namespace Ui {
@@ -28,8 +30,13 @@ public:
     void DeleteAllThing();
 	void initImagePartData();
 	void SetImagePartDataValue(short ctvalue=-2048);
+    //添加两个体，设置不同的透明度
+    void AddTwoVolume();
 private slots:
 	void slotTimeOut();
+    void TestCreateLine(QString allposstr, double color[]);
+    void TestCreatePoint(double center[],double color[]);
+    void TestDrawAdjustCenterLine();
 	//测试按钮
 	void on_pushButton_clicked();
 
@@ -60,6 +67,10 @@ private slots:
 	void on_actionCreateCurveLine_triggered();
 	void on_actionNextView_triggered();
 	void on_actionPlayView_triggered();
+    void on_actionPolyDataWidget_triggered();
+
+    void on_SwitchBtn_clicked();
+
 private:
     void InitInfo();
     void InitCamera();
@@ -73,6 +84,7 @@ private:
     int m_dim[3];
     double m_spacing[3];
     vtkRenderer* renderer;
+    vtkRenderer* renderer2;
     vtkDICOMImageReader* dicomReader;
     vtkImageData* m_imageData;
 	vtkImageData* m_imagePartData;
@@ -83,6 +95,25 @@ private:
 	//VE相关
 	VEControl* m_vecontrol;
 	bool m_veactive;
+
+    //polydata操作相关
+    PolyDataOpe* m_polyDataOpe;
+
+    //显示分割心脏相关
+    HeartSeg* m_heartseg;
+    vtkVolume* m_volume1;
+    vtkVolume* m_volume2;
+    vtkVolume* m_volume3;
+    vtkVolume* m_volume4;
+    vtkVolume* m_volume5;
+    vtkVolume* m_volume6;
+
+    vtkRenderer* m_render1;
+    vtkRenderer* m_render2;
+    vtkRenderer* m_render3;
+    vtkRenderer* m_render4;
+    vtkRenderer* m_render5;
+    vtkRenderer* m_render6;
 };
 
 #endif // MAINWINDOW_H

@@ -1,4 +1,4 @@
-VTK_DIR = F:/VTK-7.1/vtk-libdebug
+VTK_DIR = F:/VTK/VTK-7.1/qt5.3/lib-debug
 INCLUDEPATH += $${VTK_DIR}/include/vtk-7.1
 #LIBS += $$quote(F:\VTK-7.1\vtk-libdebug\lib\lib*)
 LIBS += -L$${VTK_DIR}/lib \
@@ -16,6 +16,7 @@ LIBS += -L$${VTK_DIR}/lib \
         libvtkFiltersGeometry-7.1 \
         libvtkFiltersHybrid-7.1 \
         libvtkFiltersFlowPaths-7.1 \
+        libvtkFiltersTexture-7.1 \
         libvtkDICOMParser-7.1 \
         libvtkImagingCore-7.1 \
         libvtkImagingHybrid-7.1 \

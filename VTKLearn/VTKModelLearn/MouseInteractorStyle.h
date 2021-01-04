@@ -19,9 +19,9 @@ public:
 		lastClickRes = MyFunc::GetPos3DBy2D_1(this->GetDefaultRenderer(),pos,lastPos);
 		if(lastClickRes){
 			//qDebug()<<"pos:"<<lastPos[0]<< lastPos[1]<<lastPos[2];
-            qDebug() << "true";
+            //qDebug() << "true";
         }else{
-            qDebug() << "false";
+            //qDebug() << "false";
         }
         if(seedUpdate != NULL){
 			if(lastClickRes){

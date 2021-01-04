@@ -19,7 +19,6 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
     void testPlane();
-	void createTestVolume();
 private slots:
     void on_pushButton_clicked();
 

@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_thickness = 5;
     //读取dicom文件
     m_dicomReader = vtkDICOMImageReader::New();
-	m_dicomReader->SetDirectoryName("E:/workspace/DICOM/133ceng");
+    m_dicomReader->SetDirectoryName("H:/AllData/001_000005_36362");
 	m_dicomReader->Update();
 	m_dicomReader->GetOutput()->GetDimensions(m_dimension);
 	m_dicomReader->GetOutput()->GetSpacing(m_spacing);
@@ -44,8 +44,6 @@ MainWindow::MainWindow(QWidget *parent) :
     //初始化
     for(int i=0; i<4; i++){
         m_render[i] = vtkRenderer::New();
-//        m_render[i]->GetActiveCamera()->SetParallelProjection(1);
-//        m_render[i]->ResetCamera();
         m_resliceMapper[i] = vtkImageResliceMapper::New();
 		m_resliceMapper[i]->SetInputData(m_dicomReader->GetOutput());
     }
@@ -110,10 +108,10 @@ void MainWindow::initView1()
     double normal[3] = {0,0,1};
     vtkCamera* camera1 = vtkCamera::New();
     camera1->SetParallelProjection(1);
-    camera1->SetPosition(m_center[0],m_center[1],-(m_center[2]+100));
+    camera1->SetPosition(m_center[0],m_center[1],(m_center[2]+100));
     camera1->SetFocalPoint(m_center);
     camera1->SetViewUp(0,1,0);
-	camera1->SetParallelScale(m_center[1]*2);
+    camera1->SetParallelScale(m_center[2]);
     qDebug() << "test scale:" << m_center[1];
 
     initView(ui->view1,normal,m_render[0],m_resliceMapper[0],camera1,m_thickness);
@@ -184,10 +182,10 @@ void MainWindow::initView(QVTKWidget *vtkwidget, double *normal, vtkRenderer *re
     /**
       * 设置切片图的位置为相机的交点
       * 设置切片图正对相机
-      * 设置后切片图跟随鼠标转动而变化
+      * 设置后切片图跟随鼠标转动而变化*/
 
     slicemapper->SetSliceAtFocalPoint(1);
-    slicemapper->SetSliceFacesCamera(1);*/
+    slicemapper->SetSliceFacesCamera(1);
 
     vtkPlane* plane = vtkPlane::New();
     plane->SetOrigin(m_center);
@@ -198,8 +196,8 @@ void MainWindow::initView(QVTKWidget *vtkwidget, double *normal, vtkRenderer *re
     vtkImageSlice* imageSlice = vtkImageSlice::New();
     imageSlice->SetMapper(slicemapper);
     //设置窗宽窗位
-    imageSlice->GetProperty()->SetColorLevel(-600);
-    imageSlice->GetProperty()->SetColorWindow(1600);
+    imageSlice->GetProperty()->SetColorLevel(200);
+    imageSlice->GetProperty()->SetColorWindow(600);
     imageSlice->Modified();
     imageSlice->Update();
     //test
@@ -269,9 +267,11 @@ void MainWindow::slot_slider3_valueChanged(int position)
 {
     QTime t;
     t.start();
+
+    qDebug() << position ;
     m_sliceIndex[0] = position-1;
     double center[3] = {m_sliceIndex[0]*m_spacing[0],m_center[1],m_center[2]};
-//    qDebug() << m_sliceIndex[0] ;
+
     updateSlice(m_render[2],center,m_resliceMapper[2]);
     ui->view3->GetRenderWindow()->Render();
     qDebug() << "slider3:" << t.elapsed()/1000.0;

@@ -282,7 +282,7 @@ public:
         vtkSmartPointer<vtkSphereSource> sphereSource =
           vtkSmartPointer<vtkSphereSource>::New();
         sphereSource->SetCenter(pos[0], pos[1], pos[2]);
-        sphereSource->SetRadius(8.0);
+        sphereSource->SetRadius(3.0);
 
         vtkSmartPointer<vtkPolyDataMapper> mapper =
           vtkSmartPointer<vtkPolyDataMapper>::New();

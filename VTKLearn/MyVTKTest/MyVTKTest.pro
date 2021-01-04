@@ -12,6 +12,15 @@ TARGET = MyVTKTest
 TEMPLATE = app
 
 
+#在.pro中引入TBB
+TBB_INCLUDE=F:\vtk-m\tbb-2018_U5
+TBB_LIB=F:\vtk-m\tbb-2018_U5\build\windows_ia32_gcc_mingw_release
+TBB_LIBD=F:\vtk-m\tbb-2018_U5\build\windows_ia32_gcc_mingw_debug
+INCLUDEPATH += $${TBB_INCLUDE}/include
+
+LIBS += -L$${TBB_LIBD} \
+        -ltbb_debug
+
 SOURCES += main.cpp\
         mainwindow.cpp \
         ../Globe/myfunc.cpp

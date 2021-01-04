@@ -18,11 +18,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     showimage.cpp \
-    myraycastimage.cpp \
     volumeinfo.cpp \
     ggmath.cpp \
     ../Globe/myfunc.cpp \
-    vecontrol.cpp
+    vecontrol.cpp \
+    polydataope.cpp \
+    heartseg.cpp
 #    ctkwidgettest.cpp
 
 HEADERS  += mainwindow.h \
@@ -30,13 +31,19 @@ HEADERS  += mainwindow.h \
     interactortest.h \
     mymath.h \
     showimage.h \
-    myraycastimage.h \
     volumeinfo.h \
     ggmath.h \
     ../Globe/myfunc.h \
     MyDiocmInteractorStyleImage.h \
     MouseInteractorStyle.h \
-    vecontrol.h
+    vecontrol.h \
+    polydataope.h \
+    heartseg.h
 
 FORMS    += mainwindow.ui \
-    volumeinfo.ui
+    volumeinfo.ui \
+    polydataope.ui
+
+QMAKE_CXXFLAGS += -fopenmp
+LIBS += -lgomp -lpthread
+

@@ -7,9 +7,11 @@
 #include <vtkActor2DCollection.h>
 #include <vtkAbstractMapper3D.h>
 #include <vtkAssemblyPath.h>
+#include <vtkAppendPolyData.h>
 
 #include <vtkBox.h>
 #include <vtkBarChartActor.h>
+#include <vtkBooleanOperationPolyDataFilter.h>
 
 #include <vtkCamera.h>
 #include <vtkCoordinate.h>
@@ -22,8 +24,13 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCylinderSource.h>
 #include <vtkClipPolyData.h>
+#include <vtkClipClosedSurface.h>
+#include <vtkCellLocator.h>
+#include <vtkCutter.h>
 
 #include <vtkDICOMImageReader.h>
+#include <vtkDataSetMapper.h>
+#include <vtkDistancePolyDataFilter.h>
 
 #include <vtkExtractVOI.h>
 
@@ -59,6 +66,7 @@
 #include <vtkImageToStructuredPoints.h>
 #include <vtkImageMagnitude.h>
 #include <vtkImageAccumulate.h>
+#include <vtkIntersectionPolyDataFilter.h>
 
 #include <vtkLight.h>
 #include <vtkLightCollection.h>
@@ -74,11 +82,13 @@
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
 #include <vtkMapper.h>
+#include <vtkMetaImageWriter.h>
 
 #include <vtkNamedColors.h>
 
 #include <vtkOpenGLRenderWindow.h>
 #include <vtkOutlineFilter.h>
+#include <vtkOpenGLGPUVolumeRayCastMapper.h>
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
@@ -92,6 +102,8 @@
 #include <vtkPolyLine.h>
 #include <vtkProp3DCollection.h>
 #include <vtkPolyDataNormals.h>
+
+#include <vtkQuadraticHexahedron.h>
 
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
@@ -111,16 +123,22 @@
 #include <vtkSubPixelPositionEdgels.h>
 #include <vtkSeedWidget.h>
 #include <vtkSeedRepresentation.h>
+#include <vtkScalarBarActor.h>
 
 #include <vtkTransform.h>
 #include <vtkTextProperty.h>
 #include <vtkTextMapper.h>
 #include <vtkThreshold.h>
 
+#include <vtkUnstructuredGrid.h>
+#include <vtkUnstructuredGridWriter.h>
+
 #include <vtkVolumeProperty.h>
 #include <vtkVolume16Reader.h>
 #include <vtkVertex.h>
 #include <vtkVertexGlyphFilter.h>
+#include <vtkVoxel.h>
+
 
 #include <vtkWindowedSincPolyDataFilter.h>
 
@@ -142,6 +160,16 @@
 #include <synchapi.h>
 #include <sstream>
 #include <cstdlib>
+#include <string>
+#include <map>
+#include <fstream>
+#include <fcntl.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <share.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 //qt
 #include <QDebug>

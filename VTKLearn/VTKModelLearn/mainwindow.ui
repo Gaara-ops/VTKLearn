@@ -18,12 +18,26 @@
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+        </item>
+        <item>
+         <widget class="QVTKWidget" name="qvtkWidget_2" native="true"/>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="SwitchBtn">
+          <property name="text">
+           <string>Switch</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton">
@@ -54,6 +68,8 @@
     <addaction name="actionVoumeInfo"/>
     <addaction name="separator"/>
     <addaction name="actionClear"/>
+    <addaction name="separator"/>
+    <addaction name="actionPolyDataWidget"/>
    </widget>
    <widget class="QMenu" name="menuCreate">
     <property name="title">
@@ -199,6 +215,11 @@
   <action name="actionPlayView">
    <property name="text">
     <string>PlayView</string>
+   </property>
+  </action>
+  <action name="actionPolyDataWidget">
+   <property name="text">
+    <string>PolyDataWidget</string>
    </property>
   </action>
  </widget>

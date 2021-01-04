@@ -5,6 +5,42 @@
 #include "interactortest.h"
 #include "../Globe/myfunc.h"
 
+#include <QJsonParseError>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include "heartseg.h"
+
+
+
+class vtkMyCameraCallback : public vtkCommand
+{
+public:
+    static vtkMyCameraCallback *New()
+    {
+        return new vtkMyCameraCallback;
+    }
+    virtual void Execute(vtkObject *caller, unsigned long, void*)
+    {
+        vtkCamera *camera = static_cast<vtkCamera*>(caller);
+        double camPos[3];
+        double focalPos[3];
+        double upVector[3];
+        camera->GetPosition(camPos);
+        camera->GetFocalPoint(focalPos);
+        camera->GetViewUp(upVector);
+
+        //遍历所有renderer，都设置一遍最新的相机
+        m_renderer1->SetActiveCamera(camera);
+        m_renderer2->SetActiveCamera(camera);
+        m_renderer1->GetRenderWindow()->Render();
+        m_renderer2->GetRenderWindow()->Render();
+    }
+    vtkRenderer* m_renderer1;
+    vtkRenderer* m_renderer2;
+};
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -15,8 +51,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_volumeInfo = NULL;
 
     //读取文件"H:/niu/20190301/YANGYUEMING";
-    char *dirname = "E:/workspace/DICOM/133ceng";
-//	char *dirname = "E:/workspace/DICOM/allbody";
+    char *dirname = "H:/AllData/133ceng";
+//    char *dirname = "E:/segdicom";
+
     dicomReader = vtkDICOMImageReader::New();
     vtkDataArray* scalarsArr = NULL;
     double scalarRange[2];
@@ -24,15 +61,29 @@ MainWindow::MainWindow(QWidget *parent) :
 						  scalarRange,m_imageData,scalarsArr);
     qDebug() << "dim:" << m_dim[0]<<m_dim[1]<<m_dim[2];
 	qDebug() << "m_spacing:" << m_spacing[0]<<m_spacing[1]<<m_spacing[2];
-	initImagePartData();
+
+    //initImagePartData();
 	//初始化一些信息
     InitInfo();
+    vtkSmartPointer<vtkCamera> camera =vtkSmartPointer<vtkCamera>::New();
+    renderer->SetActiveCamera(camera);
+    renderer2->SetActiveCamera(camera);
+
+//    vtkSmartPointer<vtkMyCameraCallback> cameraCallback1 = vtkSmartPointer<vtkMyCameraCallback>::New();
+//    cameraCallback1->m_renderer1 = renderer;
+//    cameraCallback1->m_renderer2 = renderer2;
+//    camera->AddObserver(vtkCommand::ModifiedEvent, cameraCallback1);
+
     ui->qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
-	ui->qvtkWidget->GetInteractor()->SetInteractorStyle(m_volumeStyle);
+//    ui->qvtkWidget->GetInteractor()->SetInteractorStyle(m_volumeStyle);
     ui->qvtkWidget->GetRenderWindow()->Render();
+
+    ui->qvtkWidget_2->GetRenderWindow()->AddRenderer(renderer2);
+    ui->qvtkWidget_2->GetRenderWindow()->Render();
 	//VE相关
 	m_vecontrol = new VEControl;
 	m_veactive = false;
+    m_polyDataOpe = new PolyDataOpe;
 }
 
 MainWindow::~MainWindow()
@@ -89,14 +140,73 @@ void MainWindow::SetImagePartDataValue(short ctvalue)
 			}
 		}
 	}
-	m_imagePartData->Modified();
+    m_imagePartData->Modified();
+}
+
+void MainWindow::AddTwoVolume()
+{
+    vtkMetaImageReader* read1 = vtkMetaImageReader::New();
+    read1->SetFileName("E:/mhddata/47830/gg1_1_47830.mhd");
+    read1->Update();
+    vtkImageData* image1 = read1->GetOutput();
+    vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper1 =
+        vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    mapper1->SetInputData(image1);
+    mapper1->SetBlendMode(1);
+    mapper1->SetAutoAdjustSampleDistances(1);
+    vtkSmartPointer<vtkColorTransferFunction> colorFun1 =
+            vtkSmartPointer<vtkColorTransferFunction>::New();
+    vtkSmartPointer<vtkPiecewiseFunction> opacityFun1 =
+            vtkSmartPointer<vtkPiecewiseFunction>::New();
+    vtkSmartPointer<vtkVolumeProperty> property1 =
+            vtkSmartPointer<vtkVolumeProperty>::New();
+    colorFun1->AddRGBPoint( -1024, 0, 0, 0);
+    colorFun1->AddRGBPoint( 1600, 1, 1, 1 );
+    opacityFun1->AddPoint(-1024, 0 );
+    opacityFun1->AddPoint(1600, 0.8 );
+    property1->SetColor( colorFun1 );
+    property1->SetScalarOpacity( opacityFun1 );
+    property1->SetInterpolationTypeToLinear();
+    vtkSmartPointer<vtkVolume> volume1 = vtkSmartPointer<vtkVolume>::New();
+    volume1->SetProperty( property1 );
+    volume1->SetMapper( mapper1 );
+    renderer->AddActor( volume1 );
+
+    vtkMetaImageReader* read2 = vtkMetaImageReader::New();
+    read2->SetFileName("E:/mhddata/47830/gg1_2_47830.mhd");
+    read2->Update();
+    vtkImageData* image2 = read2->GetOutput();
+    vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper2 =
+        vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    mapper2->SetInputData(image2);
+    mapper2->SetBlendMode(1);
+    mapper2->SetAutoAdjustSampleDistances(1);
+    vtkSmartPointer<vtkColorTransferFunction> colorFun2 =
+            vtkSmartPointer<vtkColorTransferFunction>::New();
+    vtkSmartPointer<vtkPiecewiseFunction> opacityFun2 =
+            vtkSmartPointer<vtkPiecewiseFunction>::New();
+    vtkSmartPointer<vtkVolumeProperty> property2 =
+            vtkSmartPointer<vtkVolumeProperty>::New();
+    colorFun2->AddRGBPoint( -1024, 0, 0, 0);
+    colorFun2->AddRGBPoint( 0, 0.6, 0.6, 0.6);
+    colorFun2->AddRGBPoint( 1600, 1, 1, 1 );
+    opacityFun2->AddPoint(-1024, 0 );
+    opacityFun2->AddPoint(0, 0.6 );
+    opacityFun2->AddPoint(1600, 1 );
+    property2->SetColor( colorFun2 );
+    property2->SetScalarOpacity( opacityFun2 );
+    property2->SetInterpolationTypeToLinear();
+    vtkSmartPointer<vtkVolume> volume2 = vtkSmartPointer<vtkVolume>::New();
+    volume2->SetProperty( property2 );
+    volume2->SetMapper( mapper2 );
+    renderer->AddActor( volume2 );
 }
 
 void MainWindow::slotTimeOut()
 {
 	if(m_veactive){
 		m_vecontrol->UpdateViewFocus();
-	}
+    }
 }
 
 void MainWindow::InitInfo()
@@ -112,6 +222,8 @@ void MainWindow::InitInfo()
 	m_volumeStyle = MouseInteractorStyle::New();
 	m_volumeStyle->SetDefaultRenderer(renderer);
 	m_volumeStyle->imagedata = m_imageData;
+
+    renderer2 = vtkRenderer::New();
 }
 
 void MainWindow::InitCamera()
@@ -186,7 +298,7 @@ void MainWindow::on_actionVolume_triggered()
 	CreateVolume(extractVOI->GetOutput(),0,1,0,renderer);*/
 	InitCamera();
 	MyFunc::CreateVolume(m_imageData,0,1,0,renderer);
-	renderer->ResetCamera();
+    renderer->ResetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
 }
 int ctvalue=-600;
@@ -206,6 +318,8 @@ void MainWindow::on_actionLargestRegion_triggered()
 	DeleteAllThing();
     double color[3]={1,0,0};
 	MyFunc::CreateSurface(m_imageData,ctvalue,0.5,color,renderer,true);
+    renderer->ResetCamera();
+    ui->qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::on_actionClear_triggered()
@@ -232,60 +346,188 @@ void MainWindow::on_actionSeedGrowth_triggered()
 	m_imageData->Modified();
 	ui->qvtkWidget->GetRenderWindow()->Render();
 }
+void MainWindow::TestCreateLine(QString allposstr, double color[3])
+{
+    vtkSmartPointer<vtkActor> lineactor =
+      vtkSmartPointer<vtkActor>::New();
 
+    vtkSmartPointer<vtkPoints> Points =
+      vtkSmartPointer<vtkPoints>::New();
+
+    QStringList poslist = allposstr.split(",");
+    for(int i=0;i<poslist.size();i++){
+        QStringList tmpPos = poslist.at(i).split("|");
+        if(tmpPos.size() != 3){
+            continue;
+        }
+        Points->InsertNextPoint(tmpPos[0].toFloat(),tmpPos[1].toFloat(),tmpPos[2].toFloat());
+    }
+
+    qDebug() <<"point size:" << Points->GetNumberOfPoints();
+    MyFunc::CreateLineActor(Points,lineactor,color);
+    renderer->AddActor(lineactor);
+}
+
+void MainWindow::TestCreatePoint(double center[], double color[])
+{
+    float radius = 0.4;
+    vtkSmartPointer<vtkSphereSource> sphere =
+      vtkSmartPointer<vtkSphereSource>::New();
+
+    sphere->SetCenter(center);
+    sphere->SetRadius(radius);
+    sphere->SetPhiResolution(100);
+    sphere->SetThetaResolution(100);
+    vtkSmartPointer<vtkPolyDataMapper> mapper =
+      vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(sphere->GetOutputPort());
+    vtkSmartPointer<vtkActor> actor =
+      vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(color);
+    renderer->AddActor(actor);
+}
+
+void MainWindow::TestDrawAdjustCenterLine()
+{
+/** 绘制调整中心线*/
+    vtkSmartPointer<vtkNamedColors> colors =
+      vtkSmartPointer<vtkNamedColors>::New();
+    QVector<QString> colorname;
+    colorname<<"Banana"<<"Tomato"<<"Wheat"<<"Lavender"<<"Flesh"
+               <<"Raspberry"<<"Salmon"<<"Mint"<<"Peacock";
+    vtkStringArray *colorarr = vtkStringArray::New();
+    colors->GetColorNames(colorarr);
+
+    //绘制点集
+    for(int i=1;i<10;i++){
+        QString filepath = "E:/test/allpos"+QString::number(i)+".txt";
+
+        QFile file(filepath);
+        if(!file.open(QIODevice::ReadOnly))
+        {
+            qDebug() << "not have file:" << filepath;
+             continue;
+        }
+        QTextStream in(&file);
+        QString allposinfo = in.readAll();
+        QByteArray bytearr = allposinfo.toUtf8();//QString转QByteArray
+        QJsonParseError jsonError;
+        QJsonDocument doc = QJsonDocument::fromJson(bytearr,&jsonError);//QByteArray转QJsonDocument
+        if (jsonError.error != QJsonParseError::NoError){
+            QString errdata = QString(jsonError.errorString().toUtf8().constData());
+            qDebug() << errdata;
+        }
+        QJsonObject obj = doc.object();//QJsonDocument转QJsonObject
+
+        QJsonArray stroldposarr = obj["oldpos"].toArray();
+        QString stroldallpos = obj["oldposstr"].toString();
+        QJsonArray strnewposarr = obj["newpos"].toArray();
+        QString strnewallpos = obj["newposstr"].toString();
+
+        double oldcolor[3] = {1,0,0};
+        colors->GetColor(colorarr->GetValue(i),oldcolor[0],oldcolor[1],oldcolor[2]);
+        qDebug() << "oldcolor:" << oldcolor[0]<<oldcolor[1]<<oldcolor[2];
+        double oldcenter[3] = {stroldposarr.at(0).toDouble(),
+                              stroldposarr.at(1).toDouble(),
+                              stroldposarr.at(2).toDouble()};
+        TestCreateLine(stroldallpos,oldcolor);
+        TestCreatePoint(oldcenter,oldcolor);
+
+        double newcolor[3] = {0,1,0};
+        colors->GetColor(colorarr->GetValue(i*20+1),newcolor[0],newcolor[1],newcolor[2]);
+        qDebug() << "newcolor:" << newcolor[0]<<newcolor[1]<<newcolor[2];
+        double newcenter[3] = {strnewposarr.at(0).toDouble(),
+                               strnewposarr.at(1).toDouble(),
+                               strnewposarr.at(2).toDouble()};
+        TestCreateLine(strnewallpos,newcolor);
+        TestCreatePoint(newcenter,newcolor);
+        file.close();
+    }
+
+}
+#include <vtkPropAssembly.h>
+#include <vtkCullerCollection.h>
+#include <vtkFrustumCoverageCuller.h>
+#include <vtkCuller.h>
 void MainWindow::on_pushButton_clicked()
 {
-    /**
-     * 创建两个体，其中一个有透明度
-    vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper =
-        vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-    mapper->SetInputData(m_imageData);
 
-    vtkSmartPointer<vtkColorTransferFunction> colorFun =
-            vtkSmartPointer<vtkColorTransferFunction>::New();
-    vtkSmartPointer<vtkPiecewiseFunction> opacityFun =
-            vtkSmartPointer<vtkPiecewiseFunction>::New();
-    vtkSmartPointer<vtkVolumeProperty> property =
-            vtkSmartPointer<vtkVolumeProperty>::New();
-    colorFun->AddRGBPoint( -3024, 0, 0, 0);
-    colorFun->AddRGBPoint( -16, 0.73, 0.25, 0.30);
-    colorFun->AddRGBPoint( 641, .90, .82, 0);
-    colorFun->AddRGBPoint( 3071, 1, 1, 0);
-    opacityFun->AddPoint(-3024, 0);
-    opacityFun->AddPoint(-16, 0);
-    opacityFun->AddPoint(641, .2);
-    opacityFun->AddPoint(3071, .1);
-    property->SetIndependentComponents(true);
-    property->SetColor( colorFun );
-    property->SetScalarOpacity( opacityFun );
-    property->SetInterpolationTypeToLinear();
-    property->ShadeOn();
-    property->SetAmbient(0.5);
-    property->SetDiffuse(0.5);
-    property->SetSpecular(0.5);
-    property->SetSpecularPower(50.0);
+    m_heartseg = new HeartSeg;
 
-    vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
-    volume->SetProperty( property );
-    volume->SetMapper( mapper );
-    renderer->AddActor(volume);*/
+    m_render1 = vtkRenderer::New();
+    m_render2 = vtkRenderer::New();
+    m_render3 = vtkRenderer::New();
+    m_render4 = vtkRenderer::New();
+    m_render5 = vtkRenderer::New();
+    m_render6 = vtkRenderer::New();
+
+    m_volume1 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume1,1);
+//    renderer->AddVolume(m_volume1);
+
+    m_volume2 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume2,2);
+//    renderer->AddVolume(m_volume2);
+
+    m_volume3 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume3,3);
+//    renderer->AddVolume(m_volume3);
+
+    m_volume4 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume4,4);
+//    renderer->AddVolume(m_volume4);
+
+    m_volume5 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume5,5);
+//    renderer->AddVolume(m_volume5);
+
+    m_volume6 = vtkVolume::New();
+    m_heartseg->ReadmhdData(m_volume6,6);
+//    renderer->AddVolume(m_volume6);
+    m_render1->AddVolume(m_volume1);
+    m_render1->AddVolume(m_volume2);
+    m_render1->AddVolume(m_volume3);
+    m_render1->AddVolume(m_volume4);
+    m_render1->AddVolume(m_volume5);
+    m_render1->AddVolume(m_volume6);
+
+//    vtkFrustumCoverageCuller* realculler = (vtkFrustumCoverageCuller*)(m_render1->GetCullers()->GetItemAsObject(0));
+//    vtkCuller* culler = m_render1->GetCullers()->GetLastItem();
+//    vtkFrustumCoverageCuller* realculler = static_cast<vtkFrustumCoverageCuller*>(culler);
+//    realculler->SetSortingStyleToBackToFront();
+
+
+    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render1);
+//    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render2);
+//    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render3);
+//    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render4);
+//    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render5);
+//    ui->qvtkWidget->GetRenderWindow()->AddRenderer(m_render6);
 /*
-    vtkImageData* imagedata = vtkImageData::New();
-    imagedata->DeepCopy(m_imageData);
-    imagedata->Modified();
-    for(int z=m_dim[2]/4;z<m_dim[2]*3/4;z++){
-        for(int y=0;y<m_dim[1];y++){
-            for(int x=m_dim[0]/4;x<m_dim[0]*3/4;x++){
-                short *ptr0 = static_cast<short*>(imagedata->GetScalarPointer(
-                            x,y,z));
-                *ptr0 = 0;
-            }
-        }
-    }
-    MyFunc::CreateVolume(imagedata,0,1,0,renderer);
+    vtkPropAssembly* props = vtkPropAssembly::New();
+    props->AddPart(m_volume1);
+    props->AddPart(m_volume2);
+    props->AddPart(m_volume3);
+    props->AddPart(m_volume4);
+    props->AddPart(m_volume5);
+    props->AddPart(m_volume6);
+    renderer->AddVolume(props);
 */
-    //renderer->ResetCamera();
-    //ui->qvtkWidget->GetRenderWindow()->Render();
+    m_render1->ResetCamera();
+//    m_render2->ResetCamera();
+//    m_render3->ResetCamera();
+//    m_render4->ResetCamera();
+//    m_render5->ResetCamera();
+//    m_render6->ResetCamera();
+    ui->qvtkWidget->GetRenderWindow()->Render();
+
+
+//    m_volume2 = vtkVolume::New();
+//    m_heartseg->ReadmhdData2(m_volume2);
+//    renderer2->AddVolume(m_volume2);
+//    renderer2->ResetCamera();
+//    ui->qvtkWidget_2->GetRenderWindow()->Render();
 }
 
 void MainWindow::on_ClipFrustum_triggered()
@@ -391,4 +633,53 @@ void MainWindow::on_actionPlayView_triggered()
 	}else{
 		m_timer->start(100);
 	}
+}
+
+void MainWindow::on_actionPolyDataWidget_triggered()
+{
+    m_polyDataOpe->show();
+}
+
+void MainWindow::on_SwitchBtn_clicked()
+{
+    static int num = 1;
+    ++num;
+    if(num>6){
+        num = 1;
+    }
+
+    vtkGPUVolumeRayCastMapper* gmapper =
+            (vtkGPUVolumeRayCastMapper*)(m_volume2->GetMapper());
+    gmapper->RemoveAllInputs();
+    vtkImageData* tmpData = vtkImageData::New();
+    m_heartseg->GetSectionImageData(tmpData,num);
+    gmapper->SetInputData(tmpData);
+    gmapper->Modified();
+
+    vtkPiecewiseFunction* opacity=m_volume2->GetProperty()->GetScalarOpacity();
+    opacity->ReleaseData();
+    m_heartseg->GetOpacityFun(opacity,num);
+    opacity->Modified();
+
+    m_volume2->Modified();
+    renderer2->ResetCamera();
+    ui->qvtkWidget_2->GetRenderWindow()->Render();
+    tmpData->Delete();
+
+    //-------------old
+    vtkGPUVolumeRayCastMapper* gmapper1 =
+            (vtkGPUVolumeRayCastMapper*)(m_volume1->GetMapper());
+    gmapper1->RemoveAllInputs();
+    vtkImageData* tmpData1 = vtkImageData::New();
+    m_heartseg->GetSectionImageData(tmpData1,num,1);
+    gmapper1->SetInputData(tmpData1);
+    gmapper1->Modified();
+
+//    vtkPiecewiseFunction* opacity1=m_volume1->GetProperty()->GetScalarOpacity();
+//    opacity1->ReleaseData();
+//    m_heartseg->GetOpacityFun(opacity1,num);
+//    opacity1->Modified();
+    renderer->ResetCamera();
+    ui->qvtkWidget->GetRenderWindow()->Render();
+    tmpData->Delete();
 }

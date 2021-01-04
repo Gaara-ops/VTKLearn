@@ -343,16 +343,16 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	dicomReader->GetOutput()->GetSpacing(spacing);
 	dicomReader->GetOutput()->SetSpacing(spacing[0]*2,spacing[1]*2,spacing[2]*2);*/
 	}
-	vtkSmartPointer<vtkGPUVolumeRayCastMapper> mapper =
-		vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-	mapper->SetInputData(imagedata);
-	mapper->SetBlendMode(blendmode);
+    vtkSmartPointer<vtkOpenGLGPUVolumeRayCastMapper > mapper =
+        vtkSmartPointer<vtkOpenGLGPUVolumeRayCastMapper >::New();
+    mapper->SetInputData(imagedata);
+    mapper->SetBlendMode(blendmode);
 	if(autosample){
 		mapper->SetAutoAdjustSampleDistances(1);
 	}else{
 		mapper->SetAutoAdjustSampleDistances(0);
 		mapper->SetSampleDistance(sampledis);
-	}
+    }
 
 	/**
 	 * 用面对体进行切割
@@ -380,14 +380,14 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 	vtkSmartPointer<vtkVolumeProperty> property =
 			vtkSmartPointer<vtkVolumeProperty>::New();
 	if(blendmode == 0){
-		colorFun->AddRGBPoint( -3024, 0, 0, 0, 0.5, 0.0 );
-		colorFun->AddRGBPoint( -16, 0.73, 0.25, 0.30, 0.49, .61 );
-		colorFun->AddRGBPoint( 641, .90, .82, .56, .5, 0.0 );
-		colorFun->AddRGBPoint( 3071, 1, 1, 1, .5, 0.0 );
-		opacityFun->AddPoint(-3024, 0, 0.5, 0.0 );
-		opacityFun->AddPoint(-16, 0, .49, .61 );
-		opacityFun->AddPoint(641, .72, .5, 0.0 );
-		opacityFun->AddPoint(3071, .71, 0.5, 0.0);
+        colorFun->AddRGBPoint( -3024, 0, 0, 0, 0.5, 0.0 );
+        colorFun->AddRGBPoint( -16, 0.73, 0.25, 0.30, 0.49, .61 );
+        colorFun->AddRGBPoint( 641, .90, .82, .56, .5, 0.0 );
+        colorFun->AddRGBPoint( 3071, 1, 1, 1, .5, 0.0 );
+        opacityFun->AddPoint(-3024, 0, 0.5, 0.0 );
+        opacityFun->AddPoint(-16, 0, .49, .61 );
+        opacityFun->AddPoint(641, .72, .5, 0.0 );
+        opacityFun->AddPoint(3071, .71, 0.5, 0.0);
 		property->SetIndependentComponents(true);
 		property->SetColor( colorFun );
 		property->SetScalarOpacity( opacityFun );
@@ -410,9 +410,10 @@ void MyFunc::CreateVolume(vtkImageData *imagedata, int blendmode,
 		property->SetScalarOpacity( opacityFun );
 		property->SetInterpolationTypeToLinear();
 	}
+    property->DisableGradientOpacityOff();
 	vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
 	volume->SetProperty( property );
-	volume->SetMapper( mapper );
+    volume->SetMapper( mapper );
 	/*volume->SetOrientation(0,180,0);
 	int* dim = imagedata->GetDimensions();
 	double* spacing = imagedata->GetSpacing();
@@ -456,7 +457,7 @@ void MyFunc::CreateSurface(vtkImageData *imagedata, double value,
 	vtkSmartPointer<vtkCleanPolyData> cleanPolyData =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 	cleanPolyData->SetInputConnection(skinExtractor->GetOutputPort());
-	cleanPolyData->Update();
+    cleanPolyData->Update();
 
 	vtkSmartPointer<vtkPolyDataMapper> skinMapper =
 		vtkSmartPointer<vtkPolyDataMapper>::New();
